@@ -1,0 +1,37 @@
+name: Deploy to Cloudflare Pages
+
+# Publishes the site to the "nmos-tools" Pages project (→ nmos.teunkey.com) on
+# every push to main. Also runnable on demand from the Actions tab.
+#
+# Requires ONE repo secret:  CLOUDFLARE_API_TOKEN
+#   (Cloudflare → My Profile → API Tokens → custom token with
+#    Account · Cloudflare Pages · Edit  for this account)
+# The account ID below is not secret, so it's inline.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stage site files (exclude repo meta)
+        run: |
+          mkdir -p dist
+          rsync -a --exclude='.git' --exclude='.github' --exclude='dist' --exclude='README.md' ./ dist/
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: f924798fc9588b1480b1fc64a276534c
+          wranglerVersion: '3'
+          command: pages deploy dist --project-name=nmos-tools --branch=main
