@@ -26,7 +26,8 @@ jobs:
       - name: Stage site files (exclude repo meta)
         run: |
           mkdir -p dist
-          rsync -a --exclude='.git' --exclude='.github' --exclude='dist' --exclude='README.md' ./ dist/
+          rsync -a --exclude='.git' --exclude='.github' --exclude='dist' --exclude='README.md' \
+                --exclude='demo/_*' --exclude='demo/build-demo.js' ./ dist/
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3

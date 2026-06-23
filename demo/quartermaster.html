@@ -1,0 +1,3006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NMOS Quartermaster</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg-void: #080b0f;
+    --bg-base: #0d1117;
+    --bg-raised: #131920;
+    --bg-overlay: #1a2230;
+    --bg-hover: #1e2a3a;
+    --border: rgba(99, 179, 237, 0.08);
+    --border-active: rgba(99, 179, 237, 0.25);
+    --accent: #00d4ff;
+    --accent-dim: rgba(0, 212, 255, 0.12);
+    --accent-glow: rgba(0, 212, 255, 0.35);
+    --green: #00e676;
+    --green-dim: rgba(0, 230, 118, 0.1);
+    --red: #ff4569;
+    --red-dim: rgba(255, 69, 105, 0.1);
+    --amber: #ffab40;
+    --amber-dim: rgba(255, 171, 64, 0.1);
+    --purple: #b388ff;
+    --purple-dim: rgba(179, 136, 255, 0.1);
+    --text-primary: #e8edf2;
+    --text-secondary: #8899aa;
+    --text-muted: #4a5568;
+    --font-ui: 'DM Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --radius: 6px;
+    --radius-lg: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-ui);
+    background: var(--bg-void);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Visible focus ring for keyboard users (mouse clicks don't trigger it). */
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
+  textarea:focus-visible, [tabindex]:focus-visible, [role="button"]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  /* ── Topbar ── */
+  .topbar {
+    min-height: 52px;
+    background: var(--bg-base);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 7px 16px;
+    gap: 12px;
+    flex-shrink: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-glow);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .topbar-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-left: 12px;
+    flex: 1;
+  }
+
+  .nav-btn {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .nav-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .nav-btn.active {
+    background: var(--accent-dim);
+    border-color: var(--border-active);
+    color: var(--accent);
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+  }
+
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+  }
+
+  .status-dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+  .status-dot.offline { background: var(--red); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .alert-badge {
+    padding: 3px 8px;
+    background: var(--red-dim);
+    border: 1px solid var(--red);
+    border-radius: 100px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--red);
+    cursor: pointer;
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: all 0.15s;
+  }
+
+  .btn-icon:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+  /* Narrow screens: drop non-essential topbar chrome (wordmark + the redundant
+     resource-count pill) so the nav tabs and live status fit without the topbar
+     ballooning into several stacked rows. */
+  @media (max-width: 940px) {
+    .logo-text { display: none; }
+    #resource-pill { display: none; }
+  }
+
+  /* On smaller screens give the center routing canvas more room by trimming the
+     sender/receiver rails — they stay perfectly usable at this width.
+     (.main-prefixed so this beats the base .sidebar width regardless of source order.) */
+  @media (max-width: 1000px) {
+    .main .sidebar, .main .sidebar-right { width: 212px; }
+  }
+
+  /* ── Licence badge + activation modal ── */
+  .lic-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:11px;font-family:var(--font-mono);font-weight:600;cursor:pointer;white-space:nowrap;border:1px solid transparent;user-select:none}
+  .lic-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+  .lic-badge.licensed{background:var(--green-dim);color:var(--green);border-color:rgba(0,230,118,.4)}
+  .lic-badge.trial{background:var(--amber-dim);color:var(--amber);border-color:rgba(255,171,64,.4)}
+  .lic-badge.unlicensed{background:var(--red-dim);color:var(--red);border-color:var(--red)}
+  .lic-badge:hover{filter:brightness(1.15)}
+
+  .lic-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;display:flex;align-items:center;justify-content:center}
+  .lic-overlay.hidden{display:none}
+  .lic-modal{width:470px;max-width:92vw;background:var(--bg-base);border:1px solid var(--border-active);border-radius:var(--radius-lg);box-shadow:0 16px 48px rgba(0,0,0,.5);overflow:hidden}
+  .lic-modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+  .lic-modal-title{font-size:15px;font-weight:600;color:var(--text-primary)}
+  .lic-modal-close{cursor:pointer;color:var(--text-muted);font-size:16px;line-height:1}
+  .lic-modal-close:hover{color:var(--text-primary)}
+  .lic-status{padding:14px 18px;font-size:12px;line-height:1.6;color:var(--text-secondary);border-bottom:1px solid var(--border)}
+  .lic-status b{color:var(--text-primary)}
+  .lic-field{padding:14px 18px 6px}
+  .lic-field label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px;font-family:var(--font-mono)}
+  .lic-field textarea{width:100%;min-height:74px;resize:vertical;background:var(--bg-overlay);border:1px solid var(--border);border-radius:var(--radius);padding:9px 11px;color:var(--text-primary);font-family:var(--font-mono);font-size:11px;outline:none;word-break:break-all}
+  .lic-field textarea:focus{border-color:var(--border-active)}
+  .lic-msg{padding:2px 18px 0;font-size:11px;min-height:15px;font-family:var(--font-mono)}
+  .lic-msg.ok{color:var(--green)}.lic-msg.err{color:var(--red)}
+  .lic-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px}
+
+  /* ── Main Layout ── */
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Left Sidebar - Senders ── */
+  .sidebar {
+    width: 240px;
+    background: var(--bg-base);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .sidebar-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-title {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .sidebar-search {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .sidebar-search:focus { border-color: var(--border-active); }
+  .sidebar-search::placeholder { color: var(--text-muted); }
+
+  .sidebar-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .sidebar-list::-webkit-scrollbar { width: 4px; }
+  .sidebar-list::-webkit-scrollbar-track { background: transparent; }
+  .sidebar-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── Resource Cards ── */
+  .resource-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .resource-card:hover {
+    border-color: var(--border-active);
+    background: var(--bg-hover);
+  }
+
+  .resource-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    box-shadow: 0 0 0 1px var(--accent-glow) inset;
+  }
+
+  .resource-card.pending {
+    border-color: var(--amber);
+    background: var(--amber-dim);
+    animation: borderPulse 1.5s infinite;
+  }
+
+  @keyframes borderPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 171, 64, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(255, 171, 64, 0); }
+  }
+
+  .resource-card.connected-sender { border-left: 3px solid var(--green); }
+  .resource-card.connected-receiver { border-left: 3px solid var(--accent); }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .format-badge {
+    font-size: 9px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    padding: 2px 5px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    text-transform: uppercase;
+  }
+
+  .format-video { background: rgba(0, 212, 255, 0.15); color: var(--accent); border: 1px solid rgba(0, 212, 255, 0.3); }
+  .format-audio { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(179, 136, 255, 0.3); }
+  .format-data { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(255, 171, 64, 0.3); }
+
+  .card-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.3;
+    flex: 1;
+  }
+
+  .card-device {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    margin-bottom: 2px;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 6px;
+  }
+
+  .card-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 10px;
+    padding: 1px 5px;
+    background: var(--bg-overlay);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .health-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .health-online { background: var(--green); box-shadow: 0 0 4px var(--green); }
+  .health-offline { background: var(--red); }
+  .health-degraded { background: var(--amber); }
+  .health-unknown { background: var(--text-muted); }
+
+  .connected-indicator {
+    font-size: 9px;
+    font-family: var(--font-mono);
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  /* ── Center - Routing Canvas ── */
+  .routing-canvas {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg-void);
+  }
+
+  .canvas-toolbar {
+    height: 44px;
+    background: var(--bg-base);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .toolbar-label {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .routing-mode-badge {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    padding: 3px 10px;
+    border-radius: 100px;
+    background: var(--amber-dim);
+    border: 1px solid var(--amber);
+    color: var(--amber);
+  }
+
+  .btn-primary {
+    padding: 6px 14px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-primary:hover { background: var(--accent); color: var(--bg-void); }
+  .btn-danger { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+  .btn-danger:hover { background: var(--red); color: var(--bg-void); }
+
+  .canvas-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .canvas-area::-webkit-scrollbar { width: 6px; }
+  .canvas-area::-webkit-scrollbar-track { background: transparent; }
+  .canvas-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── Connection Matrix / Routing Table ── */
+  .routing-table {
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .routing-table-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .routing-table-title {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ── Active Connections List ── */
+  .connection-row {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .connection-row:last-child { border-bottom: none; }
+  .connection-row:hover { background: var(--bg-hover); }
+
+  .conn-resource {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .conn-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .conn-id {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+  }
+
+  .conn-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--green);
+    font-size: 18px;
+  }
+
+  .conn-status {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 2px 7px;
+    border-radius: 100px;
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid rgba(0, 230, 118, 0.3);
+  }
+
+  .conn-status.broken { background: var(--red-dim); color: var(--red); border-color: var(--red); }
+
+  .disconnect-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .disconnect-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+  /* ── Empty State ── */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-state-icon { font-size: 32px; margin-bottom: 12px; }
+  .empty-state-title { font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+  .empty-state-body { font-size: 12px; font-family: var(--font-mono); line-height: 1.6; }
+
+  /* ── Right Sidebar - Receivers ── */
+  .sidebar-right {
+    width: 240px;
+    background: var(--bg-base);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  /* ── Stats Bar ── */
+  .stats-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  .stat-chip {
+    flex: 1 1 110px;
+    min-width: 110px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .stat-chip.accent .stat-value { color: var(--accent); }
+  .stat-chip.green .stat-value { color: var(--green); }
+  .stat-chip.amber .stat-value { color: var(--amber); }
+
+  /* ── Panels ── */
+  .panel {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel.active { display: flex; }
+
+  /* ── Automation Panel ── */
+  .panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .panel-content::-webkit-scrollbar { width: 4px; }
+  .panel-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .section-title {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .rule-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .rule-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .rule-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    flex: 1;
+  }
+
+  .rule-toggle {
+    width: 32px;
+    height: 18px;
+    background: var(--bg-overlay);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .rule-toggle.on { background: var(--green-dim); border-color: var(--green); }
+
+  .rule-toggle-thumb {
+    width: 12px;
+    height: 12px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: all 0.2s;
+  }
+
+  .rule-toggle.on .rule-toggle-thumb { left: 16px; background: var(--green); }
+
+  .rule-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .rule-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 11px;
+  }
+
+  .rule-key {
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    width: 60px;
+    flex-shrink: 0;
+  }
+
+  .rule-val {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    font-size: 11px;
+  }
+
+  .rule-action-type {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    background: var(--purple-dim);
+    color: var(--purple);
+    border: 1px solid rgba(179, 136, 255, 0.3);
+  }
+
+  /* ── Alert Items ── */
+  .alert-item {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: opacity 0.2s;
+  }
+
+  .alert-item.acknowledged { opacity: 0.4; }
+  .alert-item.error { border-left: 3px solid var(--red); }
+  .alert-item.warning { border-left: 3px solid var(--amber); }
+  .alert-item.info { border-left: 3px solid var(--accent); }
+  .alert-item.critical { border-left: 3px solid var(--red); background: var(--red-dim); }
+
+  .alert-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .alert-severity {
+    font-size: 9px; font-family: var(--font-mono); font-weight: 600;
+    padding: 1px 5px; border-radius: 3px; text-transform: uppercase;
+  }
+
+  .sev-error { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); }
+  .sev-warning { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber); }
+  .sev-info { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
+  .sev-critical { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); }
+
+  .alert-message { font-size: 12px; color: var(--text-primary); }
+  .alert-time { font-size: 10px; font-family: var(--font-mono); color: var(--text-muted); }
+
+  .ack-btn {
+    font-size: 10px; padding: 2px 6px;
+    background: transparent; border: 1px solid var(--border);
+    border-radius: 3px; color: var(--text-muted); cursor: pointer;
+    transition: all 0.15s; font-family: var(--font-mono);
+  }
+
+  .ack-btn:hover { border-color: var(--green); color: var(--green); }
+
+  /* ── Toast Notification ── */
+  .notification-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 280px;
+    max-width: 420px;
+    z-index: 1000;
+    animation: slideIn 0.2s ease;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  @keyframes slideIn {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+
+  .toast-indicator {
+    width: 4px;
+    height: 36px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .toast-success .toast-indicator { background: var(--green); }
+  .toast-error .toast-indicator { background: var(--red); }
+  .toast-info .toast-indicator { background: var(--accent); }
+  .toast-warning .toast-indicator { background: var(--amber); }
+
+  .toast-message { font-size: 13px; color: var(--text-primary); flex: 1; }
+
+  /* ── Add Rule Form ── */
+  .add-rule-form {
+    background: var(--bg-raised);
+    border: 1px solid var(--border-active);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .form-label {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .form-input, .form-select {
+    background: var(--bg-overlay);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    outline: none;
+    width: 100%;
+    transition: border-color 0.15s;
+  }
+
+  .form-input:focus, .form-select:focus { border-color: var(--border-active); }
+  .form-select option { background: var(--bg-raised); }
+
+  .form-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .btn-ghost {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+  /* ── Node Map ── */
+  .node-map {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  .node-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    transition: border-color 0.15s;
+  }
+
+  .node-card:hover { border-color: var(--border-active); }
+
+  .node-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+
+  .node-icon {
+    width: 32px; height: 32px;
+    background: var(--accent-dim);
+    border: 1px solid var(--border-active);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  .node-info { flex: 1; }
+  .node-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+  .node-host { font-size: 10px; font-family: var(--font-mono); color: var(--text-muted); }
+
+  .node-stats {
+    display: flex; gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .node-stat {
+    flex: 1; text-align: center;
+  }
+
+  .node-stat-val { font-size: 16px; font-family: var(--font-mono); font-weight: 600; color: var(--text-primary); }
+  .node-stat-lbl { font-size: 9px; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; }
+
+  /* ── Routing hint ── */
+  .routing-hint {
+    background: var(--amber-dim);
+    border: 1px solid var(--amber);
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--amber);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── Scrollbar for main canvas ── */
+  .routing-canvas .canvas-area::-webkit-scrollbar { width: 6px; }
+  .routing-canvas .canvas-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── Receiver click target ── */
+  .receiver-connect-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 212, 255, 0.08);
+    color: var(--accent);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    opacity: 0;
+    transition: opacity 0.15s;
+    pointer-events: none;
+  }
+
+  .resource-card:hover .receiver-connect-overlay { opacity: 1; }
+
+  .filter-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 8px 8px 0;
+  }
+
+  .filter-tab {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 3px 8px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .filter-tab.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .filter-tab:hover:not(.active) { background: var(--bg-hover); color: var(--text-secondary); }
+
+
+  /* ── Manual Device Panel ── */
+  .manual-device-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+
+  .manual-device-card.simulated { border-left: 3px solid var(--amber); }
+  .manual-device-card.real-is05 { border-left: 3px solid var(--green); }
+
+  .manual-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .manual-node-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .manual-badge {
+    font-size: 9px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 100px;
+    text-transform: uppercase;
+  }
+
+  .badge-simulated { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber); }
+  .badge-real      { background: var(--green-dim);  color: var(--green);  border: 1px solid var(--green); }
+  .badge-manual    { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
+
+  .manual-resources {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .manual-resource-group {
+    background: var(--bg-overlay);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+  }
+
+  .manual-resource-group-title {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .manual-resource-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+  }
+
+  .manual-resource-item:last-child { border-bottom: none; }
+
+  .manual-resource-label {
+    color: var(--text-primary);
+    font-size: 11px;
+  }
+
+  .manual-resource-format {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+
+  .manual-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .manual-endpoint-display {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Add device form */
+  .add-device-form {
+    background: var(--bg-raised);
+    border: 1px solid var(--border-active);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .form-full { grid-column: 1 / -1; }
+
+  .resource-list-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .resource-editor-row {
+    display: grid;
+    grid-template-columns: 1fr 110px auto;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .btn-remove-row {
+    width: 26px;
+    height: 26px;
+    background: var(--red-dim);
+    border: 1px solid var(--red);
+    border-radius: var(--radius);
+    color: var(--red);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .btn-remove-row:hover { background: var(--red); color: white; }
+
+  .btn-add-row {
+    font-size: 11px;
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font-mono);
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+
+  .btn-add-row:hover { border-color: var(--accent); color: var(--accent); }
+
+  .form-section-label {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+    margin-top: 6px;
+  }
+
+  .endpoint-hint {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    margin-top: 3px;
+    line-height: 1.5;
+  }
+
+
+  /* ── Multicast Panel ── */
+  .mcast-row {
+    display: grid;
+    grid-template-columns: 160px 90px 1fr 120px;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.12s;
+    font-size: 12px;
+  }
+  .mcast-row:hover { background: var(--bg-hover); }
+  .mcast-row.conflict { background: rgba(255,69,105,0.07); }
+
+  .mcast-addr {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .mcast-status-pill {
+    font-size: 9px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 100px;
+    text-transform: uppercase;
+    display: inline-block;
+  }
+  .mcast-available { background: var(--bg-raised); color: var(--text-muted); border: 1px solid var(--border); }
+  .mcast-allocated { background: var(--green-dim);  color: var(--green);      border: 1px solid rgba(0,230,118,0.4); }
+  .mcast-reserved  { background: var(--accent-dim); color: var(--accent);     border: 1px solid rgba(0,212,255,0.4); }
+  .mcast-external  { background: var(--amber-dim);  color: var(--amber);      border: 1px solid rgba(255,171,64,0.4); }
+  .mcast-conflict  { background: var(--red-dim);    color: var(--red);        border: 1px solid var(--red); }
+
+  .mcast-detail {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mcast-actions { display: flex; gap: 5px; }
+
+  .conflict-card {
+    background: var(--red-dim);
+    border: 1px solid var(--red);
+    border-radius: var(--radius-lg);
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .conflict-type {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--red);
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+
+  .mcast-reserve-form {
+    background: var(--bg-raised);
+    border: 1px solid var(--border-active);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+
+  .mcast-form-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: end;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ── Topbar ── -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-text">QUARTERMASTER</span>
+  </div>
+
+  <nav class="topbar-nav">
+    <button class="nav-btn active" onclick="switchPanel('routing')">Routing</button>
+    <button class="nav-btn" onclick="switchPanel('devices')">Devices</button>
+    <button class="nav-btn" onclick="switchPanel('automation')">Automation</button>
+    <button class="nav-btn" onclick="switchPanel('monitoring')">Monitoring</button>
+    <button class="nav-btn" onclick="switchPanel('manual')">Manual</button>
+    <button class="nav-btn" onclick="switchPanel('multicast')">Multicast</button>
+  </nav>
+
+  <div class="topbar-right">
+    <span id="licBadge" class="lic-badge" onclick="openActivate()" tabindex="0" role="button" title="Licence status — click to activate">…</span>
+    <div class="status-pill">
+      <div class="status-dot" id="ws-dot"></div>
+      <span id="ws-status">Connecting…</span>
+    </div>
+    <div class="status-pill" id="resource-pill">
+      <span id="registry-count">0 devices</span>
+    </div>
+    <div class="alert-badge" id="alert-badge" onclick="switchPanel('monitoring')" style="display:none">
+      ⚠ <span id="alert-count">0</span>
+    </div>
+    <button class="btn-icon" onclick="refreshRegistry()" title="Refresh registry">↻</button>
+  </div>
+</div>
+
+<!-- ── Main ── -->
+<div class="main">
+
+  <!-- Left: Senders -->
+  <div class="sidebar" id="sender-sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Senders</div>
+      <input class="sidebar-search" type="text" placeholder="Filter senders…" oninput="filterSenders(this.value)">
+    </div>
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="setSenderFilter(this, 'all')">All</button>
+      <button class="filter-tab" onclick="setSenderFilter(this, 'video')">Video</button>
+      <button class="filter-tab" onclick="setSenderFilter(this, 'audio')">Audio</button>
+    </div>
+    <div class="sidebar-list" id="sender-list">
+      <div class="empty-state">
+        <div class="empty-state-icon">📡</div>
+        <div class="empty-state-title">No senders</div>
+        <div class="empty-state-body">Connect to an NMOS registry</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Center: Panels -->
+  <div class="routing-canvas">
+
+    <!-- Routing Panel -->
+    <div class="panel active" id="panel-routing">
+      <div class="canvas-toolbar">
+        <span class="toolbar-label">NMOS IS-05 Connection Manager</span>
+        <div id="routing-mode-indicator" style="display:none" class="routing-mode-badge">
+          ⬡ Select receiver to complete connection
+        </div>
+        <button class="btn-ghost" style="margin-left:auto;font-size:11px" onclick="cancelRouting()">Cancel</button>
+      </div>
+      <div class="canvas-area">
+        <!-- Stats -->
+        <div class="stats-bar">
+          <div class="stat-chip green">
+            <div class="stat-value" id="stat-connections">0</div>
+            <div class="stat-label">Active Streams</div>
+          </div>
+          <div class="stat-chip accent">
+            <div class="stat-value" id="stat-senders">0</div>
+            <div class="stat-label">Senders</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-value" id="stat-receivers">0</div>
+            <div class="stat-label">Receivers</div>
+          </div>
+          <div class="stat-chip amber">
+            <div class="stat-value" id="stat-nodes">0</div>
+            <div class="stat-label">Nodes</div>
+          </div>
+        </div>
+
+        <!-- Active Connections -->
+        <div class="routing-table">
+          <div class="routing-table-header">
+            <span class="routing-table-title">Active Connections</span>
+            <span id="conn-count" class="status-pill" style="font-size:11px">0 streams</span>
+          </div>
+          <div id="connections-list">
+            <div class="empty-state">
+              <div class="empty-state-icon">⟶</div>
+              <div class="empty-state-title">No active connections</div>
+              <div class="empty-state-body">Click a sender, then click a receiver<br>to establish an IS-05 connection</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick-connect hint -->
+        <div id="routing-hint" class="routing-hint" style="display:none">
+          ⬡ &nbsp; Sender selected — now click a receiver in the right panel to connect
+        </div>
+
+        <!-- Last sync -->
+        <div style="font-size:10px;font-family:var(--font-mono);color:var(--text-muted);text-align:center;margin-top:8px" id="sync-time"></div>
+      </div>
+    </div>
+
+    <!-- Devices Panel -->
+    <div class="panel" id="panel-devices">
+      <div class="canvas-toolbar">
+        <span class="toolbar-label">IS-04 Registered Nodes &amp; Devices</span>
+      </div>
+      <div class="panel-content">
+        <div class="section-title">Nodes</div>
+        <div class="node-map" id="node-map">
+          <div class="empty-state" style="grid-column:1/-1">
+            <div class="empty-state-body">No nodes discovered</div>
+          </div>
+        </div>
+        <div class="section-title" style="margin-top:12px">Devices</div>
+        <div id="devices-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+    </div>
+
+    <!-- Automation Panel -->
+    <div class="panel" id="panel-automation">
+      <div class="canvas-toolbar">
+        <span class="toolbar-label">Automation &amp; Policy Engine</span>
+        <button class="btn-primary" style="margin-left:auto" onclick="showAddRule()">+ Add Rule</button>
+      </div>
+      <div class="panel-content">
+        <div id="add-rule-form" style="display:none"></div>
+        <div class="section-title">Active Rules</div>
+        <div id="rules-list">
+          <div class="empty-state">
+            <div class="empty-state-body">No rules configured</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monitoring Panel -->
+    <div class="panel" id="panel-monitoring">
+      <div class="canvas-toolbar">
+        <span class="toolbar-label">System Alerts &amp; Health</span>
+        <button class="btn-ghost" style="margin-left:auto;font-size:11px" onclick="clearAlerts()">Acknowledge All</button>
+      </div>
+      <div class="panel-content">
+        <div class="section-title">Alerts</div>
+        <div id="alerts-list">
+          <div class="empty-state">
+            <div class="empty-state-icon">✓</div>
+            <div class="empty-state-body">System healthy — no alerts</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <!-- Multicast Panel -->
+    <div class="panel" id="panel-multicast">
+      <div class="canvas-toolbar">
+        <span class="toolbar-label">Multicast Address Pool Manager</span>
+        <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
+          <span id="mcast-conflict-badge" style="display:none" class="alert-badge">⚠ <span id="mcast-conflict-count">0</span> conflicts</span>
+          <button class="btn-ghost" style="font-size:11px" onclick="loadMulticast()">↻ Refresh</button>
+          <button class="btn-primary" onclick="showReserveForm()">+ Reserve Address</button>
+        </div>
+      </div>
+      <div class="panel-content">
+
+        <!-- Stats row -->
+        <div class="stats-bar" id="mcast-stats-bar">
+          <div class="stat-chip green">
+            <div class="stat-value" id="mcast-stat-available">—</div>
+            <div class="stat-label">Available</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-value" id="mcast-stat-allocated">—</div>
+            <div class="stat-label">Allocated</div>
+          </div>
+          <div class="stat-chip accent">
+            <div class="stat-value" id="mcast-stat-reserved">—</div>
+            <div class="stat-label">Reserved</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-value" id="mcast-stat-external">—</div>
+            <div class="stat-label">External</div>
+          </div>
+        </div>
+
+        <!-- Conflicts -->
+        <div id="mcast-conflicts-section" style="display:none">
+          <div class="section-title" style="color:var(--red)">⚠ Conflicts Detected</div>
+          <div id="mcast-conflicts-list"></div>
+        </div>
+
+        <!-- Reserve form -->
+        <div id="mcast-reserve-form-container"></div>
+
+        <!-- Address table -->
+        <div class="section-title">Address Pool</div>
+        <div class="routing-table">
+          <div class="routing-table-header" style="display:grid;grid-template-columns:160px 90px 1fr 120px;gap:12px;padding:8px 14px">
+            <span style="font-size:10px;font-family:var(--font-mono);color:var(--text-muted)">ADDRESS</span>
+            <span style="font-size:10px;font-family:var(--font-mono);color:var(--text-muted)">STATUS</span>
+            <span style="font-size:10px;font-family:var(--font-mono);color:var(--text-muted)">DETAIL</span>
+            <span style="font-size:10px;font-family:var(--font-mono);color:var(--text-muted)">ACTIONS</span>
+          </div>
+          <div id="mcast-address-table" style="max-height:380px;overflow-y:auto">
+            <div class="empty-state"><div class="empty-state-body">Loading…</div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Manual Devices Panel -->
+    <div class="panel" id="panel-manual">
+      <div class="canvas-toolbar">
+        <span class="toolbar-label">Manual Device Management — Registry-Free Mode</span>
+        <div style="display:flex;gap:8px;margin-left:auto">
+          <button class="btn-ghost" style="font-size:11px" onclick="exportManualDevices()">⬇ Export JSON</button>
+          <label class="btn-ghost" style="font-size:11px;cursor:pointer">
+            ⬆ Import JSON
+            <input type="file" accept=".json" style="display:none" onchange="importManualDevices(event)">
+          </label>
+          <button class="btn-primary" onclick="showAddDeviceForm()">+ Add Device</button>
+        </div>
+      </div>
+      <div class="panel-content">
+        <div id="add-device-form-container"></div>
+        <div class="section-title">Manual Devices</div>
+        <div id="manual-devices-list">
+          <div class="empty-state">
+            <div class="empty-state-icon">📦</div>
+            <div class="empty-state-title">No manual devices yet</div>
+            <div class="empty-state-body">Click "+ Add Device" to create a node with senders and receivers.<br>Manual devices work without any NMOS registry and support full routing.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right: Receivers -->
+  <div class="sidebar sidebar-right" id="receiver-sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">Receivers</div>
+      <input class="sidebar-search" type="text" placeholder="Filter receivers…" oninput="filterReceivers(this.value)">
+    </div>
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="setReceiverFilter(this, 'all')">All</button>
+      <button class="filter-tab" onclick="setReceiverFilter(this, 'video')">Video</button>
+      <button class="filter-tab" onclick="setReceiverFilter(this, 'audio')">Audio</button>
+    </div>
+    <div class="sidebar-list" id="receiver-list">
+      <div class="empty-state">
+        <div class="empty-state-icon">📥</div>
+        <div class="empty-state-title">No receivers</div>
+        <div class="empty-state-body">Connect to an NMOS registry</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Licence / Activation modal -->
+<div class="lic-overlay hidden" id="licOverlay" onclick="closeActivate(event)">
+  <div class="lic-modal" onclick="event.stopPropagation()">
+    <div class="lic-modal-head">
+      <div class="lic-modal-title">NMOS Quartermaster — Licence</div>
+      <span class="lic-modal-close" onclick="closeActivate()" tabindex="0" role="button">✕</span>
+    </div>
+    <div id="licModalStatus" class="lic-status"></div>
+    <div class="lic-field">
+      <label for="licKeyInput">Activate with a licence key</label>
+      <textarea id="licKeyInput" spellcheck="false" placeholder="NMOSLIC1.…   (paste the key from your purchase e-mail)"></textarea>
+    </div>
+    <div id="licActivateMsg" class="lic-msg"></div>
+    <div class="lic-actions">
+      <a class="btn-ghost" id="licBuyLink" href="https://teunkey.com/nmos-quartermaster" target="_blank" rel="noopener">Buy a licence ↗</a>
+      <button class="btn-primary" id="licActivateBtn" onclick="submitActivate()">Activate</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="notification-toast" style="display:none">
+  <div class="toast-indicator"></div>
+  <div class="toast-message"></div>
+</div>
+
+<script>
+/* ===== NMOS Quartermaster — live demo backend stub ===== */
+(function(){
+  var SNAP = {"nodes":[{"id":"node-001","label":"Camera Node A","description":"Sony Venice 2 Camera","href":"http://192.168.1.10","version":"1690000000:000000000","hostname":"venice-cam-a","caps":{},"tags":{},"api":{"versions":["v1.3"]},"services":[],"clocks":[],"interfaces":[],"_demo":true,"_type":"node","_enrichedAt":1782227010444},{"id":"node-002","label":"Switcher Node","description":"Grass Valley LDX 86","href":"http://192.168.1.20","version":"1690000000:000000000","hostname":"gv-switcher","caps":{},"tags":{},"api":{"versions":["v1.3"]},"services":[],"clocks":[],"interfaces":[],"_demo":true,"_type":"node","_enrichedAt":1782227010444},{"id":"node-003","label":"Audio Node","description":"Lawo mc²96 Console","href":"http://192.168.1.30","version":"1690000000:000000000","hostname":"lawo-mc96","caps":{},"tags":{},"api":{"versions":["v1.3"]},"services":[],"clocks":[],"interfaces":[],"_demo":true,"_type":"node","_enrichedAt":1782227010444},{"id":"node-004","label":"Graphics Node","description":"Vizrt Viz Engine","href":"http://192.168.1.40","version":"1690000000:000000000","hostname":"viz-engine-1","caps":{},"tags":{},"api":{"versions":["v1.3"]},"services":[],"clocks":[],"interfaces":[],"_demo":true,"_type":"node","_enrichedAt":1782227010444}],"devices":[{"id":"dev-001","node_id":"node-001","label":"Camera A - Video","description":"Primary camera device","version":"1690000000:000000000","type":"urn:x-nmos:device:generic","senders":["snd-001","snd-002"],"receivers":[],"controls":[{"type":"urn:x-nmos:control:sr-ctrl/v1.1","href":"http://192.168.1.10/x-nmos/connection/v1.1"}],"tags":{},"_demo":true,"_type":"device","_enrichedAt":1782227010444},{"id":"dev-002","node_id":"node-002","label":"Switcher - Inputs","description":"Switcher input device","version":"1690000000:000000000","type":"urn:x-nmos:device:generic","senders":["snd-003"],"receivers":["rcv-001","rcv-002","rcv-003"],"controls":[{"type":"urn:x-nmos:control:sr-ctrl/v1.1","href":"http://192.168.1.20/x-nmos/connection/v1.1"}],"tags":{},"_demo":true,"_type":"device","_enrichedAt":1782227010444},{"id":"dev-003","node_id":"node-003","label":"Audio Console - Send","description":"Audio console output","version":"1690000000:000000000","type":"urn:x-nmos:device:generic","senders":["snd-004","snd-005"],"receivers":["rcv-004","rcv-005"],"controls":[{"type":"urn:x-nmos:control:sr-ctrl/v1.1","href":"http://192.168.1.30/x-nmos/connection/v1.1"}],"tags":{},"_demo":true,"_type":"device","_enrichedAt":1782227010444},{"id":"dev-004","node_id":"node-004","label":"Graphics Engine","description":"Viz Engine outputs","version":"1690000000:000000000","type":"urn:x-nmos:device:generic","senders":["snd-006"],"receivers":["rcv-006"],"controls":[{"type":"urn:x-nmos:control:sr-ctrl/v1.1","href":"http://192.168.1.40/x-nmos/connection/v1.1"}],"tags":{},"_demo":true,"_type":"device","_enrichedAt":1782227010444}],"senders":[{"id":"snd-001","label":"Camera A - PGM Video","description":"HD 1080i 59.94 Video","device_id":"dev-001","flow_id":"flow-001","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":"http://192.168.1.10/sdp/video-pgm.sdp","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"studio-a","role":"camera"},"format":"urn:x-nmos:format:video","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"video","_enrichedAt":1782227010444},{"id":"snd-002","label":"Camera A - Intercom Audio","description":"AES67 Audio 48kHz","device_id":"dev-001","flow_id":"flow-002","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":null,"version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","role":"audio"},"format":"urn:x-nmos:format:audio","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"audio","_enrichedAt":1782227010444},{"id":"snd-003","label":"Switcher PGM Output","description":"Program output 1080i","device_id":"dev-002","flow_id":"flow-003","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":"http://192.168.1.20/sdp/pgm.sdp","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","role":"pgm"},"format":"urn:x-nmos:format:video","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"video","_enrichedAt":1782227010444},{"id":"snd-004","label":"Console PGM Mix","description":"Stereo program mix","device_id":"dev-003","flow_id":"flow-004","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":null,"version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","role":"audio-pgm"},"format":"urn:x-nmos:format:audio","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"audio","_enrichedAt":1782227010444},{"id":"snd-005","label":"Console Monitor Mix","description":"Monitor mix output","device_id":"dev-003","flow_id":"flow-005","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":null,"version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","role":"audio-mon"},"format":"urn:x-nmos:format:audio","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"audio","_enrichedAt":1782227010444},{"id":"snd-006","label":"Graphics Fill+Key","description":"RGBA Graphics Output","device_id":"dev-004","flow_id":"flow-006","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":null,"version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","role":"graphics"},"format":"urn:x-nmos:format:video","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"video","_enrichedAt":1782227010444}],"receivers":[{"id":"rcv-001","label":"Switcher Input 1","description":"SDI Input 1 via 2110","device_id":"dev-002","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","input":"1"},"format":"urn:x-nmos:format:video","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"video","_enrichedAt":1782227010444},{"id":"rcv-002","label":"Switcher Input 2","description":"SDI Input 2 via 2110","device_id":"dev-002","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","input":"2"},"format":"urn:x-nmos:format:video","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"video","_enrichedAt":1782227010444},{"id":"rcv-003","label":"Switcher GFX Input","description":"Graphics input","device_id":"dev-002","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","input":"3"},"format":"urn:x-nmos:format:video","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"video","_enrichedAt":1782227010445},{"id":"rcv-004","label":"Console Input 1","description":"Audio return","device_id":"dev-003","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","input":"1"},"format":"urn:x-nmos:format:audio","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"audio","_enrichedAt":1782227010445},{"id":"rcv-005","label":"Console Return Feed","description":"PGM return","device_id":"dev-003","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","input":"2"},"format":"urn:x-nmos:format:audio","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"audio","_enrichedAt":1782227010445},{"id":"rcv-006","label":"Viz Engine Preview","description":"Preview input for Viz","device_id":"dev-004","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","input":"1"},"format":"urn:x-nmos:format:video","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"video","_enrichedAt":1782227010445}],"healthStatus":{"node-001":{"resourceId":"node-001","status":"online"},"node-002":{"resourceId":"node-002","status":"online"},"node-003":{"resourceId":"node-003","status":"online"},"node-004":{"resourceId":"node-004","status":"online"}},"rules":[{"id":"rule-device-offline-alert","name":"Alert on device offline","trigger":{"event":"device:offline"},"condition":{"type":"always"},"action":{"type":"alert","params":{"severity":"error","message":"Device went offline"}},"createdAt":"2026-05-27T15:23:52.983Z","enabled":true},{"id":"rule-log-connections","name":"Log all connection events","trigger":{"event":"connection:failed"},"condition":{"type":"always"},"action":{"type":"log","params":{}},"createdAt":"2026-05-27T15:23:52.983Z","enabled":true}],"alerts":[],"connections":[{"id":"demo-c1","senderId":"snd-001","receiverId":"rcv-001","status":"active"},{"id":"demo-c2","senderId":"snd-002","receiverId":"rcv-004","status":"active"}],"timestamp":"2026-06-23T15:14:05.712Z"};
+  var LIC  = {"state":"licensed","licensee":"Demo Studio","edition":"site"};
+  var ws = null;
+  function send(obj){ if(ws && ws.onmessage) ws.onmessage({ data: JSON.stringify(obj) }); }
+  function FakeWS(){ ws = this; this.readyState=1;
+    setTimeout(function(){ if(ws.onopen) ws.onopen(); send({ type:'FULL_STATE_SNAPSHOT', payload: SNAP });
+      [1,2,3].forEach(function(d){ setTimeout(function(){ try{ if(typeof renderAll==='function') renderAll(); }catch(e){} }, 150*d); });
+    }, 70); }
+  FakeWS.prototype.send=function(){}; FakeWS.prototype.close=function(){};
+  window.WebSocket = FakeWS;
+
+  function R(body, status){ status=status||200; return Promise.resolve({ ok: status<400, status: status,
+    json:function(){ return Promise.resolve(body); }, text:function(){ return Promise.resolve(JSON.stringify(body)); } }); }
+  function nm(addr,status,detail){ return { address:addr, status:status, conflict:false, alloc:detail&&detail.alloc||null, reservation:detail&&detail.reservation||null, external:detail&&detail.external||null }; }
+
+  window.fetch = function(url, opts){
+    opts = opts||{}; var u=String(url); var m=(opts.method||'GET').toUpperCase();
+    try {
+      if (u.indexOf('/license/activate')>-1) return R({ ok:true, status: LIC });
+      if (u.indexOf('/license')>-1)          return R(LIC);
+      if (u.indexOf('/api/state')>-1)        return R(SNAP);
+      if (u.indexOf('/registry/refresh')>-1) return R({ ok:true });
+      if (u.indexOf('/manual/devices')>-1)   return R([]);
+      if (u.indexOf('/multicast/stats')>-1)  return R({ pool:{ base:'239.100.0.0', size:1000, allocated:2, reserved:1, external:0, available:997 }, conflicts:0, conflictDetails:[], reservations:[], allocations:[], external:[] });
+      if (u.indexOf('/multicast/map')>-1)    return R([
+        nm('239.100.0.0','allocated',{ alloc:{ senderId:(SNAP.senders[0]||{}).id, receiverId:(SNAP.receivers[0]||{}).id, port:5000 } }),
+        nm('239.100.0.1','allocated',{ alloc:{ senderId:(SNAP.senders[2]||{}).id, receiverId:(SNAP.receivers[1]||{}).id, port:5000 } }),
+        nm('239.100.0.2','reserved', { reservation:{ label:'PGM spare', note:'reserved for studio A' } }),
+        nm('239.100.0.3','available'), nm('239.100.0.4','available'), nm('239.100.0.5','available') ]);
+      if (u.indexOf('/connect')>-1){ var b=JSON.parse(opts.body||'{}');
+        var c={ id:'demo-'+Math.random().toString(36).slice(2,8), senderId:b.senderId, receiverId:b.receiverId, status:'active' };
+        SNAP.connections.push(c); send({ type:'CONNECTION_ADDED', payload:c }); return R({ ok:true, connection:c }); }
+      if (u.indexOf('/disconnect')>-1){ var b2=JSON.parse(opts.body||'{}');
+        var c2=SNAP.connections.filter(function(x){return x.id===b2.connectionId;})[0];
+        SNAP.connections=SNAP.connections.filter(function(x){return x.id!==b2.connectionId;});
+        if(c2) send({ type:'CONNECTION_REMOVED', payload:c2 }); return R({ ok:true }); }
+      if (u.indexOf('/rules')>-1){
+        if (m==='POST'){ var nr=JSON.parse(opts.body||'{}'); nr.id='rule-demo-'+Math.random().toString(36).slice(2,7); nr.enabled=true;
+          SNAP.rules.push(nr); send({ type:'RULE_ADDED', payload:nr }); return R(nr); }
+        var id=(u.split('/rules/')[1]||'').split('?')[0];
+        if (m==='DELETE'){ SNAP.rules=SNAP.rules.filter(function(r){return r.id!==id;}); send({ type:'RULE_REMOVED', payload:{ id:id } }); return R({ ok:true }); }
+        if (m==='PATCH'){ var body=JSON.parse(opts.body||'{}'); var r=SNAP.rules.filter(function(x){return x.id===id;})[0];
+          if(r){ Object.assign(r, body); send({ type:'RULE_UPDATED', payload:r }); } return R(r||{ ok:true }); }
+        return R(SNAP.rules);
+      }
+      if (u.indexOf('/alerts')>-1 && m==='PATCH') return R({ ok:true });
+    } catch(e){ /* fall through */ }
+    return R({ ok:true });
+  };
+})();
+</script>
+
+<div id="demoRibbon" style="position:fixed;z-index:99999;left:10px;bottom:10px;display:flex;align-items:center;gap:7px;
+  padding:5px 11px;border-radius:100px;background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.4);
+  color:#00d4ff;font:600 11px/1 'JetBrains Mono',monospace;letter-spacing:.04em;pointer-events:none;backdrop-filter:blur(4px)">
+  <span style="width:6px;height:6px;border-radius:50%;background:#00e676;box-shadow:0 0 6px #00e676"></span>
+  LIVE DEMO · sample data · runs in your browser
+</div>
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// NMOS Quartermaster — Frontend Application
+// Communicates with backend via WebSocket (real-time) + REST API
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// Same-origin so the page works whether served by the backend (e.g. homepi:3001)
+// or opened directly from disk in local dev (falls back to localhost:3001).
+const __originHosted = location.protocol === 'http:' || location.protocol === 'https:';
+const API_BASE = __originHosted ? `${location.origin}/api` : 'http://localhost:3001/api';
+const WS_URL   = __originHosted ? `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws` : 'ws://localhost:3001/ws';
+
+// ── Application State ────────────────────────────────────────────────
+const state = {
+  nodes: [], devices: [], senders: [], receivers: [], connections: [],
+  healthStatus: {}, rules: [], alerts: [],
+  selectedSenderId: null,
+  senderFilter: 'all', receiverFilter: 'all',
+  senderSearch: '', receiverSearch: '',
+  wsConnected: false,
+  license: null,
+};
+
+// Globally surface licence-gated (HTTP 402) responses by opening the activation
+// modal. The response still flows through to the caller, whose own catch shows
+// the specific message. _fetch is the un-wrapped original (used by the licence
+// calls themselves so they don't re-trigger the modal).
+const _fetch = window.fetch.bind(window);
+window.fetch = async (...args) => {
+  const res = await _fetch(...args);
+  if (res.status === 402) { try { openActivate(); } catch (_) { /* defined later */ } }
+  return res;
+};
+
+// ── WebSocket Connection ─────────────────────────────────────────────
+let ws, reconnectTimer;
+
+function connectWS() {
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    state.wsConnected = true;
+    updateWsStatus(true);
+    clearTimeout(reconnectTimer);
+  };
+
+  ws.onmessage = (e) => {
+    try { handleWsMessage(JSON.parse(e.data)); }
+    catch(err) { console.error('WS parse error', err); }
+  };
+
+  ws.onerror = () => updateWsStatus(false);
+
+  ws.onclose = () => {
+    state.wsConnected = false;
+    updateWsStatus(false);
+    reconnectTimer = setTimeout(connectWS, 3000);
+  };
+}
+
+function handleWsMessage(msg) {
+  switch (msg.type) {
+    case 'FULL_STATE_SNAPSHOT':
+    case 'RESOURCES_UPDATED': {
+      // Selectively merge — never overwrite ephemeral UI fields like selectedSenderId
+      const p = msg.payload || {};
+      if (p.nodes)        state.nodes = p.nodes;
+      if (p.devices)      state.devices = p.devices;
+      if (p.senders)      state.senders = p.senders;
+      if (p.receivers)    state.receivers = p.receivers;
+      if (p.connections)  state.connections = p.connections;
+      if (p.healthStatus) state.healthStatus = p.healthStatus;
+      if (p.rules)        state.rules = p.rules;
+      if (p.alerts) {
+        // De-duplicate alerts by id (resyncs can re-deliver existing alerts)
+        const seen = new Set();
+        state.alerts = p.alerts.filter(a => seen.has(a.id) ? false : (seen.add(a.id), true));
+      }
+      renderAll();
+      // Refresh side panels if currently open
+      if (document.getElementById('panel-multicast')?.classList.contains('active')) loadMulticast();
+      if (document.getElementById('panel-manual')?.classList.contains('active'))    loadManualDevices();
+      break;
+    }
+    case 'RESOURCE_UPSERT': {
+      const { resourceType, resource } = msg.payload;
+      if (!Array.isArray(state[resourceType])) break;
+      state[resourceType] = [...state[resourceType].filter(r => r.id !== resource.id), resource];
+      renderAll();
+      // If a manual device changed, refresh the manual panel
+      if (resource._manual && document.getElementById('panel-manual')?.classList.contains('active')) {
+        loadManualDevices();
+      }
+      break;
+    }
+    case 'RESOURCE_REMOVE': {
+      const { resourceType, id } = msg.payload;
+      if (!Array.isArray(state[resourceType])) break;
+      state[resourceType] = state[resourceType].filter(r => r.id !== id);
+      renderAll();
+      if (document.getElementById('panel-manual')?.classList.contains('active')) loadManualDevices();
+      break;
+    }
+    case 'CONNECTION_ADDED':
+      state.connections = [...state.connections.filter(c => c.id !== msg.payload.id), msg.payload];
+      renderConnections(); renderSenders(); renderReceivers();
+      // Refresh multicast view since an address was allocated
+      if (document.getElementById('panel-multicast')?.classList.contains('active')) loadMulticast();
+      break;
+    case 'CONNECTION_REMOVED':
+      state.connections = state.connections.filter(c => c.id !== msg.payload.id);
+      renderConnections(); renderSenders(); renderReceivers();
+      if (document.getElementById('panel-multicast')?.classList.contains('active')) loadMulticast();
+      break;
+    case 'CONNECTION_UPDATED':
+      state.connections = state.connections.map(c => c.id === msg.payload.id ? msg.payload : c);
+      renderConnections();
+      break;
+    case 'HEALTH_CHANGED':
+      state.healthStatus[msg.payload.resourceId] = msg.payload;
+      renderSenders(); renderReceivers(); renderNodes();
+      break;
+    case 'ALERT_NEW':
+      // De-duplicate — sometimes the same alert can arrive twice during resyncs
+      if (!state.alerts.some(a => a.id === msg.payload.id)) {
+        state.alerts.unshift(msg.payload);
+        renderAlerts(); updateAlertBadge();
+        showToast(msg.payload.severity, msg.payload.message);
+      }
+      break;
+    case 'ALERT_ACKNOWLEDGED':
+      state.alerts = state.alerts.map(a => a.id === msg.payload.id ? msg.payload : a);
+      renderAlerts(); updateAlertBadge();
+      break;
+    case 'RULE_ADDED':
+      // Replace existing rule with same id (in case of re-add)
+      state.rules = [...state.rules.filter(r => r.id !== msg.payload.id), msg.payload];
+      renderRules(); break;
+    case 'RULE_UPDATED':
+      state.rules = state.rules.map(r => r.id === msg.payload.id ? msg.payload : r);
+      renderRules(); break;
+    case 'RULE_REMOVED':
+      state.rules = state.rules.filter(r => r.id !== msg.payload.id);
+      renderRules(); break;
+
+    // Multicast events — incremental updates so the panel stays live
+    case 'MULTICAST_ALLOCATED':
+    case 'MULTICAST_RELEASED':
+    case 'MULTICAST_RESERVED':
+    case 'MULTICAST_UNRESERVED':
+    case 'MULTICAST_EXTERNAL_ADDED':
+    case 'MULTICAST_EXTERNAL_REMOVED':
+      if (document.getElementById('panel-multicast')?.classList.contains('active')) loadMulticast();
+      break;
+  }
+}
+
+// ── REST API Helpers ─────────────────────────────────────────────────
+async function apiPost(path, body) {
+  const r = await fetch(`${API_BASE}${path}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || r.statusText);
+  return data;
+}
+
+async function apiPatch(path, body) {
+  const r = await fetch(`${API_BASE}${path}`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || r.statusText);
+  return data;
+}
+
+async function apiDelete(path) {
+  const r = await fetch(`${API_BASE}${path}`, { method: 'DELETE' });
+  if (!r.ok) {
+    const data = await r.json().catch(() => ({}));
+    throw new Error(data.error || r.statusText);
+  }
+}
+
+// ── Routing Actions ──────────────────────────────────────────────────
+function selectSender(senderId) {
+  if (state.selectedSenderId === senderId) {
+    state.selectedSenderId = null;
+  } else {
+    state.selectedSenderId = senderId;
+  }
+  renderSenders();
+  renderReceivers();
+  document.getElementById('routing-mode-indicator').style.display = state.selectedSenderId ? 'flex' : 'none';
+  document.getElementById('routing-hint').style.display = state.selectedSenderId ? 'flex' : 'none';
+}
+
+function cancelRouting() {
+  state.selectedSenderId = null;
+  renderSenders(); renderReceivers();
+  document.getElementById('routing-mode-indicator').style.display = 'none';
+  document.getElementById('routing-hint').style.display = 'none';
+}
+
+async function connectToReceiver(receiverId) {
+  if (!state.selectedSenderId) return;
+  try {
+    await apiPost('/connect', { senderId: state.selectedSenderId, receiverId });
+    cancelRouting();
+    showToast('success', 'Connection established');
+  } catch (err) {
+    showToast('error', `Connection failed: ${err.message}`);
+  }
+}
+
+async function disconnect(connectionId) {
+  try {
+    await apiPost('/disconnect', { connectionId });
+    showToast('info', 'Stream disconnected');
+  } catch (err) {
+    showToast('error', `Disconnect failed: ${err.message}`);
+  }
+}
+
+async function refreshRegistry() {
+  try {
+    await apiPost('/registry/refresh', {});
+    showToast('info', 'Registry refreshed');
+  } catch (err) {
+    showToast('error', 'Registry refresh failed');
+  }
+}
+
+// ── Rendering ────────────────────────────────────────────────────────
+function renderAll() {
+  renderSenders();
+  renderReceivers();
+  renderConnections();
+  renderNodes();
+  renderDevices();
+  renderRules();
+  renderAlerts();
+  updateStats();
+  updateAlertBadge();
+  updateSyncTime();
+}
+
+// Escape any registry/user-derived string before it goes into innerHTML.
+// (Device labels, hostnames, tags, alert messages etc. are not trusted markup.)
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function getFormat(r) {
+  const f = r.format || r._format || '';
+  if (f.includes('video')) return 'video';
+  if (f.includes('audio')) return 'audio';
+  if (f.includes('data')) return 'data';
+  return 'unknown';
+}
+
+function getHealth(id) {
+  return state.healthStatus[id]?.status || 'unknown';
+}
+
+function getDeviceLabel(deviceId) {
+  return esc(state.devices.find(d => d.id === deviceId)?.label || deviceId?.slice(0, 8) || '—');
+}
+
+function getConnectionForSender(senderId) {
+  return state.connections.find(c => c.senderId === senderId);
+}
+
+function getConnectionForReceiver(receiverId) {
+  return state.connections.find(c => c.receiverId === receiverId);
+}
+
+function renderSenders() {
+  const container = document.getElementById('sender-list');
+  let filtered = state.senders;
+  if (state.senderFilter !== 'all') filtered = filtered.filter(s => getFormat(s) === state.senderFilter);
+  if (state.senderSearch) filtered = filtered.filter(s => s.label?.toLowerCase().includes(state.senderSearch));
+
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📡</div><div class="empty-state-title">No senders</div></div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(s => {
+    const fmt = getFormat(s);
+    const conn = getConnectionForSender(s.id);
+    const health = getHealth(s.id);
+    const selected = state.selectedSenderId === s.id;
+    const tags = Object.entries(s.tags || {}).slice(0, 3).map(([k,v]) => `<span class="tag">${esc(v)}</span>`).join('');
+
+    return `<div class="resource-card ${selected ? 'pending' : ''} ${conn ? 'connected-sender' : ''}"
+               tabindex="0" role="button" aria-label="Sender ${esc(s.label || s.id)}"
+               onclick="selectSender('${s.id}')">
+      <div class="card-header">
+        <span class="format-badge format-${fmt}">${fmt}</span>
+        <span class="card-label">${esc(s.label || 'Unnamed sender')}</span>
+        <span class="health-dot health-${health}"></span>
+      </div>
+      <div class="card-device">${getDeviceLabel(s.device_id)}</div>
+      <div class="card-meta">
+        <div class="card-tags">${tags}</div>
+        ${conn ? `<div class="connected-indicator">● LIVE</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderReceivers() {
+  const container = document.getElementById('receiver-list');
+  let filtered = state.receivers;
+  if (state.receiverFilter !== 'all') filtered = filtered.filter(r => getFormat(r) === state.receiverFilter);
+  if (state.receiverSearch) filtered = filtered.filter(r => r.label?.toLowerCase().includes(state.receiverSearch));
+
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📥</div><div class="empty-state-title">No receivers</div></div>`;
+    return;
+  }
+
+  const routing = !!state.selectedSenderId;
+
+  container.innerHTML = filtered.map(r => {
+    const fmt = getFormat(r);
+    const conn = getConnectionForReceiver(r.id);
+    const health = getHealth(r.id);
+    const tags = Object.entries(r.tags || {}).slice(0, 3).map(([k,v]) => `<span class="tag">${esc(v)}</span>`).join('');
+    const connSender = conn ? state.senders.find(s => s.id === conn.senderId) : null;
+
+    return `<div class="resource-card ${conn ? 'connected-receiver' : ''}"
+               tabindex="0" role="button" aria-label="Receiver ${esc(r.label || r.id)}"
+               onclick="receiverClick('${r.id}')"
+               style="position:relative;${routing ? 'cursor:crosshair' : ''}">
+      <div class="card-header">
+        <span class="format-badge format-${fmt}">${fmt}</span>
+        <span class="card-label">${esc(r.label || 'Unnamed receiver')}</span>
+        <span class="health-dot health-${health}"></span>
+      </div>
+      <div class="card-device">${getDeviceLabel(r.device_id)}</div>
+      <div class="card-meta">
+        <div class="card-tags">${tags}</div>
+        ${conn ? `<div class="connected-indicator">← ${esc(connSender?.label?.slice(0,16) || 'connected')}</div>` : ''}
+      </div>
+      ${routing ? `<div class="receiver-connect-overlay">⟶ Connect here</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function receiverClick(receiverId) {
+  if (state.selectedSenderId) {
+    connectToReceiver(receiverId);
+  } else {
+    // Show existing connection detail
+    const conn = getConnectionForReceiver(receiverId);
+    if (conn) showToast('info', `Connected from: ${state.senders.find(s=>s.id===conn.senderId)?.label || conn.senderId}`);
+  }
+}
+
+function renderConnections() {
+  const container = document.getElementById('connections-list');
+  const conns = state.connections;
+
+  document.getElementById('conn-count').textContent = `${conns.length} stream${conns.length !== 1 ? 's' : ''}`;
+
+  if (!conns.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⟶</div><div class="empty-state-title">No active connections</div><div class="empty-state-body">Click a sender, then a receiver to route</div></div>`;
+    return;
+  }
+
+  container.innerHTML = conns.map(c => {
+    const sender = state.senders.find(s => s.id === c.senderId);
+    const receiver = state.receivers.find(r => r.id === c.receiverId);
+    const status = c.status || 'active';
+
+    return `<div class="connection-row">
+      <div class="conn-resource">
+        <div class="conn-name">${esc(sender?.label || 'Unknown sender')}</div>
+        <div class="conn-id">${esc(c.senderId?.slice(0,12))}…</div>
+      </div>
+      <div class="conn-arrow">⟶</div>
+      <div class="conn-resource">
+        <div class="conn-name">${esc(receiver?.label || 'Unknown receiver')}</div>
+        <div class="conn-id">${c.receiverId?.slice(0,12)}…</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="conn-status ${status !== 'active' ? 'broken' : ''}">${status}</span>
+        <button class="disconnect-btn" onclick="disconnect('${c.id}')">✕ Disconnect</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderNodes() {
+  const container = document.getElementById('node-map');
+  if (!state.nodes.length) {
+    container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-body">No nodes discovered</div></div>`;
+    return;
+  }
+
+  const icons = { 'camera': '🎥', 'switcher': '🔀', 'console': '🎚', 'audio': '🔊', 'graphics': '🖥', 'default': '📦' };
+  const getIcon = (label) => {
+    const l = label?.toLowerCase() || '';
+    if (l.includes('camera')) return '🎥';
+    if (l.includes('switch') || l.includes('router')) return '🔀';
+    if (l.includes('audio') || l.includes('console') || l.includes('lawo')) return '🎚';
+    if (l.includes('graphic') || l.includes('viz')) return '🖥';
+    return '📦';
+  };
+
+  container.innerHTML = state.nodes.map(n => {
+    const health = getHealth(n.id);
+    const nodeDevices = state.devices.filter(d => d.node_id === n.id);
+    const nodeSenders = state.senders.filter(s => nodeDevices.some(d => d.id === s.device_id));
+    const nodeReceivers = state.receivers.filter(r => nodeDevices.some(d => d.id === r.device_id));
+
+    return `<div class="node-card">
+      <div class="node-card-header">
+        <div class="node-icon">${getIcon(n.label)}</div>
+        <div class="node-info">
+          <div class="node-name">${esc(n.label || 'Unnamed node')}</div>
+          <div class="node-host">${esc(n.hostname || n.href || '—')}</div>
+        </div>
+        <span class="health-dot health-${health}"></span>
+      </div>
+      <div class="node-stats">
+        <div class="node-stat"><div class="node-stat-val">${nodeDevices.length}</div><div class="node-stat-lbl">Devices</div></div>
+        <div class="node-stat"><div class="node-stat-val">${nodeSenders.length}</div><div class="node-stat-lbl">Senders</div></div>
+        <div class="node-stat"><div class="node-stat-val">${nodeReceivers.length}</div><div class="node-stat-lbl">Receivers</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderDevices() {
+  const container = document.getElementById('devices-list');
+  if (!state.devices.length) { container.innerHTML = ''; return; }
+
+  container.innerHTML = state.devices.map(d => {
+    const node = state.nodes.find(n => n.id === d.node_id);
+    const senders = state.senders.filter(s => s.device_id === d.id);
+    const receivers = state.receivers.filter(r => r.device_id === d.id);
+
+    return `<div class="rule-card">
+      <div class="rule-card-header">
+        <span class="rule-name">${esc(d.label || 'Unnamed device')}</span>
+        <span class="tag">${esc(node?.hostname || 'unknown node')}</span>
+      </div>
+      <div class="rule-meta">
+        <div class="rule-row"><span class="rule-key">Senders</span><span class="rule-val">${senders.length > 0 ? senders.map(s=>esc(s.label)).join(', ') : '—'}</span></div>
+        <div class="rule-row"><span class="rule-key">Receivers</span><span class="rule-val">${receivers.length > 0 ? receivers.map(r=>esc(r.label)).join(', ') : '—'}</span></div>
+        <div class="rule-row"><span class="rule-key">Type</span><span class="rule-val">${esc(d.type?.split(':').pop() || 'generic')}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRules() {
+  const container = document.getElementById('rules-list');
+  if (!state.rules.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-body">No rules configured</div></div>`;
+    return;
+  }
+
+  container.innerHTML = state.rules.map(r => `
+    <div class="rule-card">
+      <div class="rule-card-header">
+        <span class="rule-name">${esc(r.name)}</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="rule-action-type">${esc(r.action.type)}</span>
+          <div class="rule-toggle ${r.enabled ? 'on' : ''}" tabindex="0" role="button"
+               aria-label="${r.enabled ? 'Disable' : 'Enable'} rule ${esc(r.name)}" onclick="toggleRule('${r.id}', ${!r.enabled})">
+            <div class="rule-toggle-thumb"></div>
+          </div>
+        </div>
+      </div>
+      <div class="rule-meta">
+        <div class="rule-row"><span class="rule-key">Trigger</span><span class="rule-val">${esc(r.trigger.event)}</span></div>
+        <div class="rule-row"><span class="rule-key">Action</span><span class="rule-val">${esc(r.action.type)}</span></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end">
+        <button class="disconnect-btn" onclick="deleteRule('${r.id}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderAlerts() {
+  const container = document.getElementById('alerts-list');
+  if (!state.alerts.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">✓</div><div class="empty-state-body">System healthy — no alerts</div></div>`;
+    return;
+  }
+
+  container.innerHTML = state.alerts.slice(0, 30).map(a => `
+    <div class="alert-item ${a.severity} ${a.acknowledged ? 'acknowledged' : ''}">
+      <div class="alert-header">
+        <span class="alert-severity sev-${esc(a.severity)}">${esc(a.severity)}</span>
+        ${!a.acknowledged ? `<button class="ack-btn" onclick="acknowledgeAlert('${a.id}')">Acknowledge</button>` : '<span style="font-size:10px;color:var(--text-muted)">✓ Acknowledged</span>'}
+      </div>
+      <div class="alert-message">${esc(a.message)}</div>
+      <div class="alert-time">${new Date(a.timestamp).toLocaleTimeString()}</div>
+    </div>
+  `).join('');
+}
+
+// ── Rule Management ──────────────────────────────────────────────────
+function showAddRule() {
+  const container = document.getElementById('add-rule-form');
+  container.style.display = 'block';
+  container.innerHTML = `
+    <div class="add-rule-form">
+      <div class="section-title">New Automation Rule</div>
+      <div class="form-row">
+        <label class="form-label">Rule Name</label>
+        <input class="form-input" id="rule-name" placeholder="e.g. Auto-connect Camera A on startup">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Trigger Event</label>
+        <select class="form-select" id="rule-trigger">
+          <option value="sender:available">sender:available — sender comes online</option>
+          <option value="sender:offline">sender:offline — sender goes offline</option>
+          <option value="device:offline">device:offline — device goes offline</option>
+          <option value="connection:failed">connection:failed — connection breaks</option>
+          <option value="resources:updated">resources:updated — registry sync</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Action Type</label>
+        <select class="form-select" id="rule-action">
+          <option value="alert">alert — raise system alert</option>
+          <option value="connect">connect — connect sender to receiver</option>
+          <option value="disconnect">disconnect — disconnect a receiver</option>
+          <option value="reconnect_backup">reconnect_backup — failover to backup sender</option>
+          <option value="log">log — write to audit log</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Alert Severity (for alert action)</label>
+        <select class="form-select" id="rule-severity">
+          <option value="info">info</option>
+          <option value="warning">warning</option>
+          <option value="error">error</option>
+          <option value="critical">critical</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button class="btn-ghost" onclick="hideAddRule()">Cancel</button>
+        <button class="btn-primary" onclick="submitRule()">Create Rule</button>
+      </div>
+    </div>
+  `;
+}
+
+function hideAddRule() {
+  document.getElementById('add-rule-form').style.display = 'none';
+}
+
+async function submitRule() {
+  const name = document.getElementById('rule-name').value.trim();
+  const triggerEvent = document.getElementById('rule-trigger').value;
+  const actionType = document.getElementById('rule-action').value;
+  const severity = document.getElementById('rule-severity').value;
+
+  if (!name) { showToast('error', 'Rule name is required'); return; }
+
+  const rule = {
+    name,
+    trigger: { event: triggerEvent },
+    condition: { type: 'always' },
+    action: {
+      type: actionType,
+      params: actionType === 'alert' ? { severity, message: `Rule "${name}" triggered` } : {},
+    },
+  };
+
+  try {
+    await apiPost('/rules', rule);
+    hideAddRule();
+    showToast('success', `Rule "${name}" created`);
+  } catch (err) {
+    showToast('error', `Failed: ${err.message}`);
+  }
+}
+
+async function toggleRule(id, enabled) {
+  try {
+    await apiPatch(`/rules/${id}`, { enabled });
+  } catch(e) {
+    showToast('error', `Could not ${enabled ? 'enable' : 'disable'} rule: ${e.message}`);
+    renderRules(); // snap the toggle back to its real state
+  }
+}
+
+async function deleteRule(id) {
+  try {
+    await apiDelete(`/rules/${id}`);
+    showToast('info', 'Rule deleted');
+  } catch(e) {
+    showToast('error', `Could not delete rule: ${e.message}`);
+  }
+}
+
+async function acknowledgeAlert(id) {
+  try {
+    await apiPatch(`/alerts/${id}/acknowledge`, {});
+    state.alerts = state.alerts.map(a => a.id === id ? {...a, acknowledged: true} : a);
+    renderAlerts(); updateAlertBadge();
+  } catch(e) {
+    showToast('error', `Could not acknowledge alert: ${e.message}`);
+  }
+}
+
+async function clearAlerts() {
+  for (const a of state.alerts.filter(a => !a.acknowledged)) {
+    await acknowledgeAlert(a.id);
+  }
+}
+
+// ── Filter / Search ──────────────────────────────────────────────────
+function filterSenders(v) { state.senderSearch = v.toLowerCase(); renderSenders(); }
+function filterReceivers(v) { state.receiverSearch = v.toLowerCase(); renderReceivers(); }
+
+function setSenderFilter(btn, filter) {
+  document.querySelectorAll('#sender-sidebar .filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.senderFilter = filter;
+  renderSenders();
+}
+
+function setReceiverFilter(btn, filter) {
+  document.querySelectorAll('#receiver-sidebar .filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.receiverFilter = filter;
+  renderReceivers();
+}
+
+// ── UI Helpers ───────────────────────────────────────────────────────
+function switchPanel(panel) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${panel}`).classList.add('active');
+  // Highlight the matching nav button by its target panel — robust whether this
+  // was called from a click or programmatically (doesn't rely on a global event).
+  document.querySelectorAll('.nav-btn').forEach(b =>
+    b.classList.toggle('active', b.getAttribute('onclick') === `switchPanel('${panel}')`)
+  );
+  // Sidebar visibility — only visible on the routing panel
+  const showSidebars = panel === 'routing';
+  document.getElementById('sender-sidebar').style.display = showSidebars ? 'flex' : 'none';
+  document.getElementById('receiver-sidebar').style.display = showSidebars ? 'flex' : 'none';
+  // Load manual devices whenever that panel becomes active
+  if (panel === 'manual') loadManualDevices();
+  if (panel === 'multicast') loadMulticast();
+}
+
+function updateStats() {
+  document.getElementById('stat-connections').textContent = state.connections.length;
+  document.getElementById('stat-senders').textContent = state.senders.length;
+  document.getElementById('stat-receivers').textContent = state.receivers.length;
+  document.getElementById('stat-nodes').textContent = state.nodes.length;
+
+  const total = state.nodes.length + state.devices.length;
+  document.getElementById('registry-count').textContent = `${total} resources`;
+}
+
+function updateAlertBadge() {
+  const unacked = state.alerts.filter(a => !a.acknowledged).length;
+  const badge = document.getElementById('alert-badge');
+  badge.style.display = unacked > 0 ? 'block' : 'none';
+  document.getElementById('alert-count').textContent = unacked;
+}
+
+function updateWsStatus(connected) {
+  const dot = document.getElementById('ws-dot');
+  const label = document.getElementById('ws-status');
+  dot.className = 'status-dot ' + (connected ? 'online' : 'offline');
+  label.textContent = connected ? 'Registry Live' : 'Reconnecting…';
+}
+
+function updateSyncTime() {
+  const el = document.getElementById('sync-time');
+  if (state.timestamp) {
+    el.textContent = `Last sync: ${new Date(state.timestamp).toLocaleTimeString()}`;
+  }
+}
+
+let toastTimer;
+function showToast(type, message) {
+  const toast = document.getElementById('toast');
+  toast.className = `notification-toast toast-${type}`;
+  toast.querySelector('.toast-message').textContent = message;
+  toast.style.display = 'flex';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 4000);
+}
+
+// ── Licensing (client) ───────────────────────────────────────────────
+async function loadLicense() {
+  try {
+    const r = await _fetch(`${API_BASE}/license`);
+    state.license = await r.json();
+    renderLicense();
+  } catch (_) { /* leave the badge as-is */ }
+}
+
+function renderLicense() {
+  const l = state.license;
+  const badge = document.getElementById('licBadge');
+  if (!l || !badge) return;
+
+  let cls, text, title;
+  if (l.state === 'licensed') {
+    cls = 'licensed';
+    text = l.edition === 'site' ? 'Licensed · Site' : 'Licensed';
+    title = `Licensed to ${l.licensee}${l.edition ? ' (' + l.edition + ')' : ''}${l.expires ? ' — expires ' + l.expires : ' — perpetual'}`;
+  } else if (l.state === 'trial') {
+    cls = 'trial';
+    text = `Trial · ${l.trialDaysLeft}d left`;
+    title = `Evaluation trial — ${l.trialDaysLeft} day(s) left. Click to activate a licence.`;
+  } else {
+    cls = 'unlicensed';
+    text = 'Unlicensed · Activate';
+    title = 'Trial ended — control actions are disabled until you activate a licence.';
+  }
+  badge.className = 'lic-badge ' + cls;
+  badge.textContent = text;
+  badge.title = title;
+
+  const st = document.getElementById('licModalStatus');
+  if (st) {
+    if (l.state === 'licensed')      st.innerHTML = `<b>Licensed</b> to <b>${esc(l.licensee)}</b> · edition <b>${esc(l.edition)}</b>${l.expires ? ` · expires <b>${esc(l.expires)}</b>` : ' · perpetual'}.`;
+    else if (l.state === 'trial')    st.innerHTML = `You are on the <b>14-day evaluation trial</b> — <b>${l.trialDaysLeft} day(s)</b> remaining. Everything is unlocked during the trial.`;
+    else                             st.innerHTML = `Your trial has <b>ended</b>. Monitoring &amp; discovery still work, but <b>routing, automation and reservations are disabled</b> until you activate a licence.`;
+  }
+}
+
+function openActivate() {
+  document.getElementById('licOverlay').classList.remove('hidden');
+  renderLicense();
+  const msg = document.getElementById('licActivateMsg'); if (msg) { msg.textContent = ''; msg.className = 'lic-msg'; }
+  const inp = document.getElementById('licKeyInput'); if (inp) inp.focus();
+}
+function closeActivate(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('licOverlay').classList.add('hidden');
+}
+async function submitActivate() {
+  const inp = document.getElementById('licKeyInput');
+  const msg = document.getElementById('licActivateMsg');
+  const key = (inp.value || '').trim();
+  if (!key) { msg.className = 'lic-msg err'; msg.textContent = 'Paste a licence key first.'; return; }
+  msg.className = 'lic-msg'; msg.textContent = 'Activating…';
+  try {
+    const r = await _fetch(`${API_BASE}/license/activate`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key }),
+    });
+    const data = await r.json();
+    if (data.ok) {
+      state.license = data.status; renderLicense();
+      msg.className = 'lic-msg ok'; msg.textContent = '✓ Activated — thank you!';
+      setTimeout(() => closeActivate(), 1200);
+    } else {
+      msg.className = 'lic-msg err'; msg.textContent = '✕ ' + (data.error || 'Activation failed');
+    }
+  } catch (e) { msg.className = 'lic-msg err'; msg.textContent = '✕ ' + e.message; }
+}
+
+// ── Init ─────────────────────────────────────────────────────────────
+
+// Keyboard: activate the click-only <div> controls (resource cards, rule
+// toggles) with Enter/Space. Native <button>s already handle this themselves.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const el = document.activeElement;
+  if (el && el.tagName !== 'BUTTON' && el.getAttribute('role') === 'button') {
+    e.preventDefault();
+    el.click();
+  }
+});
+
+connectWS();
+loadLicense();
+
+// Fallback: load via REST if WS doesn't connect in 2s
+setTimeout(async () => {
+  if (!state.senders.length) {
+    try {
+      const r = await fetch(`${API_BASE}/state`);
+      const data = await r.json();
+      Object.assign(state, data);
+      renderAll();
+    } catch(e) {
+      showToast('warning', 'Cannot reach Quartermaster backend at localhost:3001');
+    }
+  }
+}, 2000);
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// MULTICAST PANEL
+// ═══════════════════════════════════════════════════════════════════════
+
+let mcastData = { stats: null, map: [] };
+let mcastShowAvailable = false;   // collapse the long tail of free addresses by default
+
+async function loadMulticast() {
+  try {
+    const [statsRes, mapRes] = await Promise.all([
+      fetch(`${API_BASE}/multicast/stats`),
+      fetch(`${API_BASE}/multicast/map?limit=200`),
+    ]);
+    const stats = await statsRes.json();
+    const map   = await mapRes.json();
+    mcastData = { stats, map };
+    renderMulticast();
+  } catch(e) {
+    showToast('error', 'Failed to load multicast data: ' + e.message);
+  }
+}
+
+function renderMulticast() {
+  const { stats, map } = mcastData;
+  if (!stats) return;
+
+  // Stats bar
+  document.getElementById('mcast-stat-available').textContent = stats.pool.available;
+  document.getElementById('mcast-stat-allocated').textContent = stats.pool.allocated;
+  document.getElementById('mcast-stat-reserved').textContent  = stats.pool.reserved;
+  document.getElementById('mcast-stat-external').textContent  = stats.pool.external;
+
+  // Conflict badge
+  const conflictBadge = document.getElementById('mcast-conflict-badge');
+  const conflictsSection = document.getElementById('mcast-conflicts-section');
+  if (stats.conflicts > 0) {
+    conflictBadge.style.display = 'inline-block';
+    document.getElementById('mcast-conflict-count').textContent = stats.conflicts;
+    conflictsSection.style.display = 'block';
+    document.getElementById('mcast-conflicts-list').innerHTML = stats.conflictDetails.map(c => `
+      <div class="conflict-card">
+        <div class="conflict-type">${c.type.replace(/_/g,' ')}</div>
+        <div style="color:var(--text-primary)">${c.address} — ${c.message}</div>
+      </div>`).join('');
+  } else {
+    conflictBadge.style.display = 'none';
+    conflictsSection.style.display = 'none';
+  }
+
+  // Address table — surface the addresses that actually matter (conflicts,
+  // allocations, reservations, external) and collapse the long tail of free
+  // addresses so the operator isn't scrolling past hundreds of empty rows.
+  const rows = [...map];
+  const active = rows
+    .filter(r => r.conflict || r.status !== 'available')
+    .sort((a, b) => {
+      const order = { conflict:0, allocated:1, reserved:2, external:3 };
+      const ao = a.conflict ? 0 : (order[a.status] ?? 5);
+      const bo = b.conflict ? 0 : (order[b.status] ?? 5);
+      return ao - bo;
+    });
+  const available = rows.filter(r => !r.conflict && r.status === 'available');
+
+  const tbody = document.getElementById('mcast-address-table');
+  if (!active.length && !available.length) {
+    tbody.innerHTML = '<div class="empty-state"><div class="empty-state-body">Pool is empty</div></div>';
+    return;
+  }
+
+  let html = active.map(renderMcastRow).join('');
+
+  if (available.length) {
+    if (mcastShowAvailable) {
+      html += available.map(renderMcastRow).join('');
+      html += `<div class="mcast-row" style="grid-template-columns:1fr">
+        <button class="btn-ghost" style="font-size:11px;justify-self:start" onclick="mcastToggleAvailable()">▲ Hide free addresses</button>
+      </div>`;
+    } else {
+      html += `<div class="mcast-row" style="grid-template-columns:1fr auto">
+        <span class="mcast-detail" style="color:var(--text-muted)">Free pool addresses hidden — reserve one here or let routing auto-allocate (see Available count above)</span>
+        <button class="btn-ghost" style="font-size:11px" onclick="mcastToggleAvailable()">Show all ▼</button>
+      </div>`;
+    }
+  }
+  tbody.innerHTML = html;
+}
+
+function mcastToggleAvailable() {
+  mcastShowAvailable = !mcastShowAvailable;
+  renderMulticast();
+}
+
+function renderMcastRow(row) {
+  const isConflict = row.conflict;
+  let statusHtml, detailHtml, actionsHtml;
+
+  if (isConflict) {
+    statusHtml = `<span class="mcast-status-pill mcast-conflict">⚠ CONFLICT</span>`;
+  } else {
+    const cls = `mcast-${row.status}`;
+    statusHtml = `<span class="mcast-status-pill ${cls}">${row.status}</span>`;
+  }
+
+  switch (row.status) {
+    case 'allocated':
+      detailHtml = `
+        <span class="mcast-detail">
+          ${row.alloc?.senderId ? senderLabel(row.alloc.senderId) : '—'}
+          → ${row.alloc?.receiverId ? receiverLabel(row.alloc.receiverId) : '—'}
+          &nbsp;|&nbsp; port ${row.alloc?.port ?? '—'}
+        </span>`;
+      actionsHtml = `<button class="disconnect-btn" onclick="mcastRelease('${row.address}')">Release</button>`;
+      break;
+    case 'reserved':
+      detailHtml = `
+        <span class="mcast-detail">
+          📌 ${esc(row.reservation?.label || '—')}
+          ${row.reservation?.senderId ? ' · ' + senderLabel(row.reservation.senderId) : ''}
+          ${row.reservation?.note ? ' · ' + esc(row.reservation.note) : ''}
+        </span>`;
+      actionsHtml = `<button class="disconnect-btn" onclick="mcastUnreserve('${row.address}')">Unreserve</button>`;
+      break;
+    case 'external':
+      detailHtml = `<span class="mcast-detail">⚡ External — ${esc(row.external?.label || row.external?.senderId || 'unknown sender')}</span>`;
+      actionsHtml = `<span style="font-size:10px;color:var(--text-muted)">detected</span>`;
+      break;
+    default:
+      detailHtml  = `<span class="mcast-detail" style="color:var(--text-muted)">—</span>`;
+      actionsHtml = `<button class="disconnect-btn" onclick="quickReserve('${row.address}')">Reserve</button>`;
+  }
+
+  return `<div class="mcast-row ${isConflict ? 'conflict' : ''}">
+    <span class="mcast-addr">${row.address}</span>
+    ${statusHtml}
+    ${detailHtml}
+    <div class="mcast-actions">${actionsHtml}</div>
+  </div>`;
+}
+
+// ── Helper label lookups ───────────────────────────────────────────────
+function senderLabel(id)   { return esc(state.senders.find(s => s.id === id)?.label   || id.slice(0,8)+'…'); }
+function receiverLabel(id) { return esc(state.receivers.find(r => r.id === id)?.label || id.slice(0,8)+'…'); }
+
+// ── Reserve form ───────────────────────────────────────────────────────
+function showReserveForm(prefillAddress = '') {
+  const senderOptions = state.senders.map(s =>
+    `<option value="${esc(s.id)}">${esc(s.label)}</option>`
+  ).join('');
+
+  document.getElementById('mcast-reserve-form-container').innerHTML = `
+    <div class="mcast-reserve-form">
+      <div class="section-title" style="margin-bottom:10px">Reserve Address</div>
+      <div class="mcast-form-grid">
+        <div class="form-row">
+          <label class="form-label">IP Address *</label>
+          <input class="form-input" id="mcast-addr-input" placeholder="239.100.0.5" value="${prefillAddress}">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Label *</label>
+          <input class="form-input" id="mcast-label-input" placeholder="e.g. Camera A PGM">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Pin to Sender (optional)</label>
+          <select class="form-select" id="mcast-sender-select">
+            <option value="">— Any / unassigned —</option>
+            ${senderOptions}
+          </select>
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:10px">
+        <label class="form-label">Note (optional)</label>
+        <input class="form-input" id="mcast-note-input" placeholder="e.g. Reserved for studio A video streams">
+      </div>
+      <div class="form-actions">
+        <button class="btn-ghost" onclick="hideReserveForm()">Cancel</button>
+        <button class="btn-primary" onclick="submitReserve()">Reserve Address</button>
+      </div>
+    </div>`;
+}
+
+function hideReserveForm() {
+  document.getElementById('mcast-reserve-form-container').innerHTML = '';
+}
+
+async function submitReserve() {
+  const address  = document.getElementById('mcast-addr-input').value.trim();
+  const label    = document.getElementById('mcast-label-input').value.trim();
+  const senderId = document.getElementById('mcast-sender-select').value || null;
+  const note     = document.getElementById('mcast-note-input').value.trim();
+
+  if (!address) { showToast('error', 'Address is required'); return; }
+  if (!label)   { showToast('error', 'Label is required');   return; }
+
+  try {
+    const r = await fetch(`${API_BASE}/multicast/reserve`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address, label, senderId, note }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error);
+    hideReserveForm();
+    await loadMulticast();
+    showToast('success', `${address} reserved`);
+  } catch(err) { showToast('error', `Reserve failed: ${err.message}`); }
+}
+
+// ── Quick reserve from table row ───────────────────────────────────────
+function quickReserve(address) { showReserveForm(address); }
+
+// ── Unreserve ──────────────────────────────────────────────────────────
+async function mcastUnreserve(address) {
+  if (!confirm(`Remove reservation for ${address}?`)) return;
+  try {
+    const r = await fetch(`${API_BASE}/multicast/reserve/${address.replace(/\./g,'_')}`, { method: 'DELETE' });
+    if (!r.ok) throw new Error((await r.json()).error);
+    await loadMulticast();
+    showToast('info', `${address} unreserved`);
+  } catch(err) { showToast('error', err.message); }
+}
+
+// ── Manual release ─────────────────────────────────────────────────────
+async function mcastRelease(address) {
+  if (!confirm(`Force-release ${address}? This will not send IS-05 deactivation.`)) return;
+  try {
+    const r = await fetch(`${API_BASE}/multicast/release/${address.replace(/\./g,'_')}`, { method: 'POST' });
+    if (!r.ok) throw new Error((await r.json()).error);
+    await loadMulticast();
+    showToast('info', `${address} released`);
+  } catch(err) { showToast('error', err.message); }
+}
+
+// Hook multicast panel load into switchPanel (already handled inside switchPanel)
+
+// ═══════════════════════════════════════════════════════════════════════
+// MANUAL DEVICE MANAGEMENT
+// ═══════════════════════════════════════════════════════════════════════
+
+// Track locally for rendering (supplement state from backend)
+let manualDevices = [];
+
+async function loadManualDevices() {
+  try {
+    const r = await fetch(`${API_BASE}/manual/devices`);
+    manualDevices = await r.json();
+    renderManualDevices();
+  } catch(e) {
+    console.error('Failed to load manual devices', e);
+  }
+}
+
+// ── Render manual device list ─────────────────────────────────────────
+
+function renderManualDevices() {
+  const container = document.getElementById('manual-devices-list');
+  if (!manualDevices.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">📦</div>
+        <div class="empty-state-title">No manual devices yet</div>
+        <div class="empty-state-body">Click "+ Add Device" to create a node with senders and receivers.<br>Manual devices work without any NMOS registry and support full routing.</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = manualDevices.map(({ node, device, senders, receivers }) => {
+    const isSimulated = device?._simulated !== false;
+    const cmEndpoint  = device?.controls?.[0]?.href || null;
+
+    const senderRows = senders.map(s => `
+      <div class="manual-resource-item">
+        <span class="manual-resource-label">${esc(s.label)}</span>
+        <div style="display:flex;align-items:center;gap:5px">
+          <span class="manual-resource-format format-${getFormat(s)}">${getFormat(s).toUpperCase()}</span>
+          <button onclick="deleteManualSender('${s.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;padding:0 2px" title="Remove">✕</button>
+        </div>
+      </div>`).join('') || '<div style="font-size:11px;color:var(--text-muted)">None</div>';
+
+    const receiverRows = receivers.map(r => `
+      <div class="manual-resource-item">
+        <span class="manual-resource-label">${esc(r.label)}</span>
+        <div style="display:flex;align-items:center;gap:5px">
+          <span class="manual-resource-format format-${getFormat(r)}">${getFormat(r).toUpperCase()}</span>
+          <button onclick="deleteManualReceiver('${r.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;padding:0 2px" title="Remove">✕</button>
+        </div>
+      </div>`).join('') || '<div style="font-size:11px;color:var(--text-muted)">None</div>';
+
+    return `
+      <div class="manual-device-card ${isSimulated ? 'simulated' : 'real-is05'}">
+        <div class="manual-card-header">
+          <div>
+            <div class="manual-node-name">${esc(node.label)}</div>
+            <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);margin-top:2px">${esc(node.hostname || '')}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="manual-badge badge-manual">MANUAL</span>
+            <span class="manual-badge ${isSimulated ? 'badge-simulated' : 'badge-real'}">
+              ${isSimulated ? 'SIMULATED' : 'IS-05 REAL'}
+            </span>
+            <button class="disconnect-btn" onclick="deleteManualNode('${node.id}')">🗑 Remove</button>
+          </div>
+        </div>
+
+        <div class="manual-resources">
+          <div class="manual-resource-group">
+            <div class="manual-resource-group-title">Senders (${senders.length})</div>
+            ${senderRows}
+            <button class="btn-add-row" style="margin-top:6px" onclick="addSenderToDevice('${device?.id}')">+ Add Sender</button>
+          </div>
+          <div class="manual-resource-group">
+            <div class="manual-resource-group-title">Receivers (${receivers.length})</div>
+            ${receiverRows}
+            <button class="btn-add-row" style="margin-top:6px" onclick="addReceiverToDevice('${device?.id}')">+ Add Receiver</button>
+          </div>
+        </div>
+
+        <div class="manual-card-footer">
+          <div class="manual-endpoint-display">
+            ${cmEndpoint
+              ? `🔌 IS-05: <span style="color:var(--green)">${esc(cmEndpoint)}</span>`
+              : `⚙ Simulated routing — connections tracked in state only`}
+          </div>
+          <button class="btn-ghost" style="font-size:10px" onclick="editEndpoint('${node.id}', '${cmEndpoint || ''}')">
+            ${cmEndpoint ? 'Edit Endpoint' : 'Set IS-05 Endpoint'}
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Add Device Form ───────────────────────────────────────────────────
+
+let senderRows = [];
+let receiverRows = [];
+
+function showAddDeviceForm() {
+  senderRows   = [{ label: '', format: 'video' }];
+  receiverRows = [{ label: '', format: 'video' }];
+  renderAddDeviceForm();
+}
+
+function renderAddDeviceForm() {
+  const container = document.getElementById('add-device-form-container');
+  container.innerHTML = `
+    <div class="add-device-form">
+      <div class="section-title" style="margin-bottom:12px">New Manual Device</div>
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label">Node Label *</label>
+          <input class="form-input" id="mf-node-label" placeholder="e.g. Sony Venice 2 Camera" required>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Hostname</label>
+          <input class="form-input" id="mf-hostname" placeholder="e.g. venice-cam-a">
+        </div>
+        <div class="form-row form-full">
+          <label class="form-label">IS-05 Endpoint URL <span style="color:var(--text-muted);font-weight:normal">(optional — leave blank for simulated routing)</span></label>
+          <input class="form-input" id="mf-cm-endpoint" placeholder="http://192.168.1.10/x-nmos/connection/v1.1">
+          <div class="endpoint-hint">
+            If you provide a real IS-05 endpoint, Quartermaster will send actual PATCH /staged requests to the device.<br>
+            Leave blank to track connections in software only (simulated mode — great for testing and planning).
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section-label">Senders</div>
+      <div class="resource-list-editor" id="sender-editor">
+        ${renderResourceEditorRows(senderRows, 'sender')}
+      </div>
+      <button class="btn-add-row" onclick="addSenderRow()">+ Add Sender</button>
+
+      <div class="form-section-label" style="margin-top:12px">Receivers</div>
+      <div class="resource-list-editor" id="receiver-editor">
+        ${renderResourceEditorRows(receiverRows, 'receiver')}
+      </div>
+      <button class="btn-add-row" onclick="addReceiverRow()">+ Add Receiver</button>
+
+      <div class="form-actions" style="margin-top:16px">
+        <button class="btn-ghost" onclick="hideAddDeviceForm()">Cancel</button>
+        <button class="btn-primary" onclick="submitAddDevice()">Create Device</button>
+      </div>
+    </div>`;
+}
+
+function renderResourceEditorRows(rows, type) {
+  return rows.map((row, i) => `
+    <div class="resource-editor-row">
+      <input class="form-input" placeholder="${type === 'sender' ? 'Sender' : 'Receiver'} label"
+             value="${esc(row.label)}" onchange="${type}Rows[${i}].label = this.value">
+      <select class="form-select" onchange="${type}Rows[${i}].format = this.value">
+        <option value="video"  ${row.format==='video'?'selected':''}>Video</option>
+        <option value="audio"  ${row.format==='audio'?'selected':''}>Audio</option>
+        <option value="data"   ${row.format==='data' ?'selected':''}>Data</option>
+      </select>
+      <button class="btn-remove-row" onclick="remove${type.charAt(0).toUpperCase()+type.slice(1)}Row(${i})">✕</button>
+    </div>`).join('');
+}
+
+function addSenderRow()   { senderRows.push({label:'',format:'video'});   renderAddDeviceForm(); }
+function addReceiverRow() { receiverRows.push({label:'',format:'video'}); renderAddDeviceForm(); }
+function removeSenderRow(i)   { senderRows.splice(i,1);   renderAddDeviceForm(); }
+function removeReceiverRow(i) { receiverRows.splice(i,1); renderAddDeviceForm(); }
+
+function hideAddDeviceForm() {
+  document.getElementById('add-device-form-container').innerHTML = '';
+}
+
+async function submitAddDevice() {
+  // Collect live values from the form inputs
+  const sInputs = document.querySelectorAll('#sender-editor .resource-editor-row');
+  const rInputs = document.querySelectorAll('#receiver-editor .resource-editor-row');
+
+  const senders = Array.from(sInputs).map(row => ({
+    label:  row.querySelector('input').value.trim(),
+    format: row.querySelector('select').value,
+  })).filter(s => s.label);
+
+  const receivers = Array.from(rInputs).map(row => ({
+    label:  row.querySelector('input').value.trim(),
+    format: row.querySelector('select').value,
+  })).filter(r => r.label);
+
+  const nodeLabel  = document.getElementById('mf-node-label').value.trim();
+  const hostname   = document.getElementById('mf-hostname').value.trim();
+  const cmEndpoint = document.getElementById('mf-cm-endpoint').value.trim();
+
+  if (!nodeLabel) { showToast('error', 'Node label is required'); return; }
+  if (!senders.length && !receivers.length) {
+    showToast('error', 'Add at least one sender or receiver'); return;
+  }
+
+  const body = {
+    node:    { label: nodeLabel, hostname: hostname || nodeLabel.toLowerCase().replace(/\s+/g,'-') },
+    device:  { label: nodeLabel, cmEndpoint: cmEndpoint || null },
+    senders,
+    receivers,
+  };
+
+  try {
+    const r = await fetch(`${API_BASE}/manual/devices`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error);
+    hideAddDeviceForm();
+    await loadManualDevices();
+    showToast('success', `Device "${nodeLabel}" created — ${senders.length} senders, ${receivers.length} receivers`);
+  } catch(err) {
+    showToast('error', `Failed: ${err.message}`);
+  }
+}
+
+// ── Quick-add sender/receiver to existing device ──────────────────────
+
+async function addSenderToDevice(deviceId) {
+  const label  = prompt('Sender label:');
+  if (!label) return;
+  const format = prompt('Format (video/audio/data):', 'video') || 'video';
+  try {
+    const r = await fetch(`${API_BASE}/manual/senders`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ deviceId, label, format }),
+    });
+    if (!r.ok) throw new Error((await r.json()).error);
+    await loadManualDevices();
+    showToast('success', `Sender "${label}" added`);
+  } catch(err) { showToast('error', err.message); }
+}
+
+async function addReceiverToDevice(deviceId) {
+  const label  = prompt('Receiver label:');
+  if (!label) return;
+  const format = prompt('Format (video/audio/data):', 'video') || 'video';
+  try {
+    const r = await fetch(`${API_BASE}/manual/receivers`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ deviceId, label, format }),
+    });
+    if (!r.ok) throw new Error((await r.json()).error);
+    await loadManualDevices();
+    showToast('success', `Receiver "${label}" added`);
+  } catch(err) { showToast('error', err.message); }
+}
+
+// ── Delete operations ─────────────────────────────────────────────────
+
+async function deleteManualNode(nodeId) {
+  if (!confirm('Remove this device and all its senders/receivers?')) return;
+  try {
+    const r = await fetch(`${API_BASE}/manual/nodes/${nodeId}`, { method: 'DELETE' });
+    if (!r.ok) throw new Error((await r.json()).error);
+    await loadManualDevices();
+    showToast('info', 'Device removed');
+  } catch(err) { showToast('error', err.message); }
+}
+
+async function deleteManualSender(id) {
+  try {
+    await fetch(`${API_BASE}/manual/senders/${id}`, { method: 'DELETE' });
+    await loadManualDevices();
+    showToast('info', 'Sender removed');
+  } catch(err) { showToast('error', err.message); }
+}
+
+async function deleteManualReceiver(id) {
+  try {
+    await fetch(`${API_BASE}/manual/receivers/${id}`, { method: 'DELETE' });
+    await loadManualDevices();
+    showToast('info', 'Receiver removed');
+  } catch(err) { showToast('error', err.message); }
+}
+
+// ── IS-05 endpoint editing ─────────────────────────────────────────────
+
+async function editEndpoint(nodeId, current) {
+  const newUrl = prompt('IS-05 connection management endpoint URL:\n(Leave blank for simulated mode)', current);
+  if (newUrl === null) return; // cancelled
+  try {
+    const r = await fetch(`${API_BASE}/manual/nodes/${nodeId}`, {
+      method: 'PATCH', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ cmEndpoint: newUrl.trim() || null }),
+    });
+    if (!r.ok) throw new Error((await r.json()).error);
+    await loadManualDevices();
+    showToast('success', newUrl.trim() ? 'IS-05 endpoint updated — real routing active' : 'Switched to simulated mode');
+  } catch(err) { showToast('error', err.message); }
+}
+
+// ── Import / Export ───────────────────────────────────────────────────
+
+async function exportManualDevices() {
+  try {
+    const r    = await fetch(`${API_BASE}/manual/export`);
+    const data = await r.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = 'quartermaster-devices.json';
+    a.click();
+    showToast('info', 'Device configuration exported');
+  } catch(err) { showToast('error', 'Export failed: ' + err.message); }
+}
+
+async function importManualDevices(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  try {
+    const text   = await file.text();
+    const bundle = JSON.parse(text);
+    const r = await fetch(`${API_BASE}/manual/import`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(bundle),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error);
+    await loadManualDevices();
+    showToast('success', `Imported: ${data.imported.nodes} nodes, ${data.imported.senders} senders, ${data.imported.receivers} receivers`);
+  } catch(err) { showToast('error', 'Import failed: ' + err.message); }
+  event.target.value = '';
+}
+
+// Manual devices load is handled inside switchPanel above
+
+</script>
+</body>
+</html>
