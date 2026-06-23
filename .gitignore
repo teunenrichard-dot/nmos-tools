@@ -1,0 +1,4 @@
+# Demo build sources — kept locally for regenerating the demo pages, but not
+# part of the published site (they belong with the app source, not the website).
+demo/build-demo.js
+demo/_*.json
