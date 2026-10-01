@@ -4,35 +4,1230 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NMOS Quartermaster</title>
+<link rel="icon" type="image/png" href="../assets/quartermaster-icon.png">
+<link rel="apple-touch-icon" href="../assets/quartermaster-mark.png">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap');
+/* ═══════════════════════════════════════════════════════════════════════════
+   TEUNKEY BROADCAST — the range stylesheet (range.css)
 
+   Richard, 2026-10-01: "make sure that these all follow the same palette, all
+   look the same, and look like they're made … all parts of the same product
+   range. We really do like the look of Signal Captain and Deck Planner, so use
+   those as your base … and the sign-in process is the same on each one."
+
+   ONE SOURCE: broadcast-projects/shared/range/. `node tools/sync-range.mjs`
+   copies it into Signal Captain, Deck Planner, NMOS Quartermaster and NMOS
+   Scout; `--check` fails when a copy has drifted. Never edit a copy.
+
+   ⚠ Every class starts with `tkr-` and every variable with `--tkr-`. The four
+     apps already own `.modal`, `.btn`, `.rg-*`, `.tb-*` and `.badge`; a range
+     rule must never restyle something an app built for itself.
+   ⚠ The values are Signal Captain's own static palette (the one its sign-in
+     page and first paint use). An app may re-point --tkr-* at its own theme
+     for the dialogs that open INSIDE it; the sign-in page never follows an app
+     theme, so all four sign-in pages are the same page.
+   ⚠ PIXELS, never rem: rem follows each product's OWN root size (Signal Captain 16px, the others 15px), so the
+     same rule painted the sign-in 6% smaller in three of them — caught by tools/range-check.mjs. Values = Signal
+     Captain's at its 16px root.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --tkr-bg: #0b0e14;
+  --tkr-panel: #121822;
+  --tkr-card: #161d29;
+  --tkr-card2: #1e2635;
+  --tkr-line: #232d3e;
+  --tkr-fg: #e6ebf4;
+  --tkr-muted: #8695ad;
+  --tkr-accent: #3a9ad9;
+  --tkr-accent-line: #3a9ad9;
+  --tkr-accent-soft: #7cc4ee;
+  --tkr-on-accent: #04121c;
+  --tkr-good: #3ddc84;
+  --tkr-good-soft: #6fe3a5;
+  --tkr-on-good: #05230f;
+  --tkr-bad: #ff5a6a;
+  --tkr-bad-soft: #ff8f9b;
+  --tkr-on-bad: #ffffff;
+  --tkr-warn: #ffc45c;
+  --tkr-warn-soft: #ffd489;
+  --tkr-on-warn: #1a1206;
+  --tkr-gold: #f0b429;            /* the logos' gold — marks only, never a control */
+  --tkr-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --tkr-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ── the sign-in page ─────────────────────────────────────────────────────── */
+/* ⚠ Its own palette, written out here and NOT the app's variables: an app theme
+   (Signal Captain's High contrast, Deck Planner's navy) must not make the four
+   front doors differ. */
+.tkr-signin {
+  --tkr-bg: #0b0e14; --tkr-card: #161d29; --tkr-line: #232d3e; --tkr-fg: #e6ebf4; --tkr-muted: #8695ad;
+  --tkr-accent: #3a9ad9; --tkr-accent-line: #3a9ad9; --tkr-accent-soft: #7cc4ee; --tkr-on-accent: #04121c;
+  --tkr-good-soft: #6fe3a5; --tkr-bad-soft: #ff8f9b; --tkr-warn-soft: #ffd489;
+  position: fixed; inset: 0; z-index: 2147483600; overflow: auto;
+  display: grid; place-items: center; align-content: center; gap: 14px; padding: 24px 16px;
+  font: 15px/1.5 var(--tkr-font); color: var(--tkr-fg); color-scheme: dark;
+  background:
+    radial-gradient(ellipse 60% 60% at center, rgba(4,8,18,.72) 0%, rgba(4,8,18,.50) 60%, rgba(2,5,14,.66) 100%),
+    url('../range/range-backdrop.jpg') center/cover no-repeat, #02050e;
+}
+.tkr-signin[hidden] { display: none; }
+.tkr-signin *, .tkr-signin *::before, .tkr-signin *::after { box-sizing: border-box; }
+.tkr-card {
+  background: var(--tkr-card); border: 1px solid var(--tkr-line); border-radius: 18px;
+  padding: 28px 26px 22px; width: min(380px, 100%); text-align: center;
+  box-shadow: 0 24px 60px rgba(0,0,0,.55);
+}
+.tkr-card-mark {
+  display: block; width: 88px; height: 88px; object-fit: contain; margin: 0 auto 8px;
+  filter: drop-shadow(0 3px 12px rgba(0,0,0,.55));
+}
+.tkr-card-title { margin: 4px 0 2px; font-size: 23.2px; font-weight: 800; line-height: 1.25; color: var(--tkr-fg); }
+.tkr-card-sub { margin: 0 0 18px; font-size: 14.4px; color: var(--tkr-muted); }
+.tkr-card-text { margin: 0 0 14px; font-size: 14.4px; color: var(--tkr-muted); text-align: left; }
+.tkr-mode[hidden] { display: none; }
+.tkr-field { display: block; text-align: left; margin: 0 0 12px; }
+.tkr-field > span { display: block; font-size: 13.12px; font-weight: 700; color: var(--tkr-muted); margin: 0 0 5px; }
+.tkr-field input {
+  display: block; width: 100%; padding: 11px 12px; font: inherit; font-size: 16px;
+  background: var(--tkr-bg); border: 1px solid var(--tkr-line); border-radius: 10px; color: var(--tkr-fg);
+}
+.tkr-field input::placeholder { color: var(--tkr-muted); opacity: .8; }
+.tkr-field input:focus { outline: 2px solid var(--tkr-accent-line); outline-offset: 1px; }
+.tkr-field input.tkr-pin { letter-spacing: .3em; }
+.tkr-note { margin: 0 0 12px; font-size: 13.76px; color: var(--tkr-muted); }
+.tkr-note[hidden], .tkr-err[hidden], .tkr-ok[hidden] { display: none; }
+.tkr-err { margin: 12px 0 0; font-size: 14.08px; font-weight: 700; color: var(--tkr-bad-soft); }
+.tkr-ok { margin: 0 0 14px; font-size: 14.4px; font-weight: 700; color: var(--tkr-good-soft); text-align: left; }
+.tkr-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin: 14px 0 0; }
+.tkr-link {
+  background: none; border: 0; padding: 2px 0; font: inherit; font-size: 13.44px; cursor: pointer;
+  color: var(--tkr-accent-soft); text-decoration: underline; text-underline-offset: 2px;
+}
+.tkr-link:hover { color: var(--tkr-fg); }
+.tkr-link:focus-visible { outline: 2px solid var(--tkr-accent-line); outline-offset: 2px; border-radius: 4px; }
+.tkr-link[hidden] { display: none; }
+.tkr-range { margin: 0; font-size: 12.48px; color: var(--tkr-muted); text-align: center; }
+
+/* ── buttons ──────────────────────────────────────────────────────────────── */
+/* Signal Captain's .btn, value for value. */
+.tkr-btn {
+  background: var(--tkr-card); border: 1px solid var(--tkr-line); color: var(--tkr-fg);
+  border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 700; cursor: pointer; line-height: 1.3;
+}
+.tkr-btn:hover { filter: brightness(1.12); }
+.tkr-btn:focus-visible { outline: 2px solid var(--tkr-accent-line); outline-offset: 2px; }
+.tkr-btn.tkr-primary { background: var(--tkr-accent); border-color: var(--tkr-accent); color: var(--tkr-on-accent); }
+.tkr-btn.tkr-danger { color: var(--tkr-bad-soft); }
+.tkr-btn.tkr-sm { padding: 5px 11px; font-size: 13.12px; }
+.tkr-btn.tkr-wide { display: block; width: 100%; padding: 11px 14px; border-radius: 10px; font-size: 16px; font-weight: 800; }
+.tkr-btn[disabled] { opacity: .5; cursor: not-allowed; filter: none; }
+
+/* ── the header lockup: mark + two-word name ─────────────────────────────── */
+/* Signal Captain's brand: a 26 px mark, the FIRST word heavy, the second not.
+   "Signal Captain", "Deck Planner", "NMOS Quartermaster", "NMOS Scout". */
+.tkr-brand {
+  display: inline-flex; align-items: center; gap: 8px; color: var(--tkr-fg); text-decoration: none;
+  font-family: var(--tkr-font); font-size: 16px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; line-height: 1.2;
+}
+.tkr-brand b { font-weight: 900; }
+.tkr-brand-mark { height: 26px; width: 26px; object-fit: contain; flex: 0 0 auto; filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
+
+/* ── the account badges, right-hand end of every header ──────────────────── */
+/* Signal Captain's .badge at a fine pointer: [Name · Role] [Sign out] */
+.tkr-acct { display: inline-flex; align-items: center; gap: 8px; }
+.tkr-badge {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 3px 10px;
+  border-radius: 999px; background: var(--tkr-panel); border: 1px solid var(--tkr-line);
+  font: inherit; font-family: var(--tkr-font); font-size: 12.48px; line-height: 1.2; color: var(--tkr-muted);
+  cursor: pointer; white-space: nowrap; text-decoration: none;
+}
+.tkr-badge:hover { border-color: var(--tkr-accent); color: var(--tkr-fg); }
+.tkr-badge:focus-visible { outline: 2px solid var(--tkr-accent-line); outline-offset: 2px; }
+.tkr-badge.tkr-admin { color: var(--tkr-warn-soft); border-color: var(--tkr-warn); }
+.tkr-badge .tkr-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--tkr-accent); flex: 0 0 auto; }
+
+/* ── dialogs ──────────────────────────────────────────────────────────────── */
+/* Signal Captain's modal, value for value, under range names. */
+.tkr-back {
+  position: fixed; inset: 0; background: rgba(0,0,0,.62); z-index: 2147483500;
+  display: grid; place-items: center; padding: 20px; font: 15px/1.5 var(--tkr-font); color: var(--tkr-fg);
+}
+.tkr-back *, .tkr-back *::before, .tkr-back *::after { box-sizing: border-box; }
+.tkr-dlg {
+  background: var(--tkr-panel); border: 1px solid var(--tkr-line); border-radius: 14px;
+  width: min(560px, 100%); max-height: 86vh; display: flex; flex-direction: column;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6); text-align: left;
+}
+.tkr-dlg.tkr-wide { width: min(860px, 100%); }
+.tkr-dlg-head { display: flex; align-items: center; gap: 10px; padding: 16px 18px 0; }
+.tkr-dlg-head h3 { margin: 0; font-size: 16.8px; font-weight: 800; flex: 1; line-height: 1.3; }
+.tkr-x {
+  font: inherit; font-size: 24px; line-height: 1; background: none; border: 0; color: var(--tkr-muted);
+  cursor: pointer; padding: 0 4px; border-radius: 6px;
+}
+.tkr-x:hover { color: var(--tkr-fg); }
+.tkr-dlg-sub { margin: 6px 18px 0; color: var(--tkr-muted); font-size: 13.76px; }
+.tkr-dlg-body { padding: 14px 18px; overflow: auto; }
+.tkr-dlg-body p { margin: 0 0 10px; }
+.tkr-dlg-foot {
+  display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; padding: 12px 18px 16px;
+  border-top: 1px solid var(--tkr-line);
+}
+.tkr-dlg-note {
+  background: var(--tkr-card2); border-left: 3px solid var(--tkr-accent); border-radius: 0 8px 8px 0;
+  padding: 10px 12px; color: var(--tkr-muted); font-size: 13.6px; margin: 4px 0 12px;
+}
+.tkr-dlg-note.tkr-warn { border-left-color: var(--tkr-warn); color: var(--tkr-warn-soft); }
+.tkr-meta { color: var(--tkr-muted); font-size: 13.76px; }
+
+/* the password form (Signal Captain's .pw-*) */
+.tkr-pw-form { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.tkr-pw-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.tkr-pw-field > span { font-size: 13.12px; font-weight: 700; color: var(--tkr-muted); }
+.tkr-input, .tkr-pw-field input, .tkr-pw-field select {
+  min-width: 0; width: 100%; background: var(--tkr-bg); border: 1px solid var(--tkr-line); border-radius: 7px;
+  color: var(--tkr-fg); font: inherit; font-size: 15.2px; padding: 8px 10px;
+}
+.tkr-input:focus, .tkr-pw-field input:focus, .tkr-pw-field select:focus { outline: 2px solid var(--tkr-accent-line); outline-offset: 1px; }
+.tkr-pw-hint { margin: 0; font-size: 12.8px; color: var(--tkr-muted); }
+.tkr-pw-err { margin: 0; font-size: 13.6px; font-weight: 700; color: var(--tkr-bad-soft); }
+.tkr-pw-err[hidden] { display: none; }
+
+/* a new password, shown once, and the message to send with it */
+.tkr-pw-out {
+  font-family: var(--tkr-mono); font-size: 16.8px; font-weight: 800; background: var(--tkr-bg);
+  border: 1px dashed var(--tkr-accent); border-radius: 8px; padding: 12px; text-align: center; margin: 10px 0;
+  user-select: all; overflow-wrap: anywhere;
+}
+.tkr-msg {
+  width: 100%; min-height: 168px; resize: vertical; background: var(--tkr-bg); color: var(--tkr-fg);
+  border: 1px solid var(--tkr-line); border-radius: 8px; padding: 10px 12px; font: inherit; font-size: 14.4px; line-height: 1.45;
+}
+
+/* ── accounts list (Signal Captain's People rows) ────────────────────────── */
+.tkr-people { display: grid; gap: 8px; margin: 0 0 6px; }
+.tkr-person {
+  background: var(--tkr-card); border: 1px solid var(--tkr-line); border-radius: 10px;
+  padding: 11px 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.tkr-person .tkr-who { font-weight: 800; }
+.tkr-person .tkr-meta { font-size: 12.8px; }
+.tkr-person .tkr-acts { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.tkr-person.tkr-asked { border-color: rgba(255,196,92,.6); background: rgba(255,196,92,.06); }
+.tkr-person.tkr-lapsed { border-color: rgba(255,196,92,.45); background: rgba(255,196,92,.05); }
+.tkr-asked-line { color: var(--tkr-warn-soft); font-size: 12.8px; font-weight: 700; }
+.tkr-role {
+  background: var(--tkr-card); border: 1px solid var(--tkr-line); color: var(--tkr-fg);
+  border-radius: 7px; padding: 4px 8px; font: inherit; font-size: 12.8px;
+}
+.tkr-tag {
+  display: inline-block; margin-left: 6px; padding: 0 7px; border-radius: 999px; font-size: 11.52px; font-weight: 700;
+  border: 1px solid var(--tkr-line); color: var(--tkr-muted); vertical-align: 1px;
+}
+
+/* ── toast (Signal Captain's) ────────────────────────────────────────────── */
+.tkr-toast {
+  position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  width: max-content; max-width: min(720px, calc(100vw - 32px)); box-sizing: border-box; text-align: center;
+  background: var(--tkr-good); color: var(--tkr-on-good); font: 800 14.08px/1.4 var(--tkr-font);
+  padding: 10px 20px; border-radius: 20px; z-index: 2147483650; pointer-events: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+.tkr-toast.tkr-bad { background: var(--tkr-bad); color: var(--tkr-on-bad); }
+
+@media (max-width: 420px) {
+  .tkr-card { padding: 22px 18px 18px; border-radius: 16px; }
+  .tkr-card-mark { width: 72px; height: 72px; }
+  .tkr-dlg-foot .tkr-btn { flex: 1 1 auto; }
+}
+@media (pointer: coarse) {
+  .tkr-btn, .tkr-badge, .tkr-link, .tkr-role { min-height: 44px; }
+  .tkr-field input, .tkr-input { min-height: 44px; }
+}
+@media print { .tkr-signin, .tkr-back, .tkr-toast { display: none !important; } }
+
+</style>
+<script>
+/* ===== NMOS Quartermaster — live demo backend stub ===== */
+(function(){
+  var SNAP = {"nodes":[{"id":"node-001","label":"Camera Node A","description":"Sony Venice 2 Camera","href":"http://192.168.1.10","version":"1690000000:000000000","hostname":"venice-cam-a","caps":{},"tags":{},"api":{"versions":["v1.3"]},"services":[],"clocks":[],"interfaces":[],"_demo":true,"_type":"node","_enrichedAt":1790843880121},{"id":"node-002","label":"Switcher Node","description":"Grass Valley LDX 86","href":"http://192.168.1.20","version":"1690000000:000000000","hostname":"gv-switcher","caps":{},"tags":{},"api":{"versions":["v1.3"]},"services":[],"clocks":[],"interfaces":[],"_demo":true,"_type":"node","_enrichedAt":1790843880121},{"id":"node-003","label":"Audio Node","description":"Lawo mc²96 Console","href":"http://192.168.1.30","version":"1690000000:000000000","hostname":"lawo-mc96","caps":{},"tags":{},"api":{"versions":["v1.3"]},"services":[],"clocks":[],"interfaces":[],"_demo":true,"_type":"node","_enrichedAt":1790843880121},{"id":"node-004","label":"Graphics Node","description":"Vizrt Viz Engine","href":"http://192.168.1.40","version":"1690000000:000000000","hostname":"viz-engine-1","caps":{},"tags":{},"api":{"versions":["v1.3"]},"services":[],"clocks":[],"interfaces":[],"_demo":true,"_type":"node","_enrichedAt":1790843880121}],"devices":[{"id":"dev-001","node_id":"node-001","label":"Camera A - Video","description":"Primary camera device","version":"1690000000:000000000","type":"urn:x-nmos:device:generic","senders":["snd-001","snd-002"],"receivers":[],"controls":[{"type":"urn:x-nmos:control:sr-ctrl/v1.1","href":"http://192.168.1.10/x-nmos/connection/v1.1"}],"tags":{},"_demo":true,"_type":"device","_enrichedAt":1790843880121},{"id":"dev-002","node_id":"node-002","label":"Switcher - Inputs","description":"Switcher input device","version":"1690000000:000000000","type":"urn:x-nmos:device:generic","senders":["snd-003"],"receivers":["rcv-001","rcv-002","rcv-003"],"controls":[{"type":"urn:x-nmos:control:sr-ctrl/v1.1","href":"http://192.168.1.20/x-nmos/connection/v1.1"}],"tags":{},"_demo":true,"_type":"device","_enrichedAt":1790843880121},{"id":"dev-003","node_id":"node-003","label":"Audio Console - Send","description":"Audio console output","version":"1690000000:000000000","type":"urn:x-nmos:device:generic","senders":["snd-004","snd-005"],"receivers":["rcv-004","rcv-005"],"controls":[{"type":"urn:x-nmos:control:sr-ctrl/v1.1","href":"http://192.168.1.30/x-nmos/connection/v1.1"}],"tags":{},"_demo":true,"_type":"device","_enrichedAt":1790843880121},{"id":"dev-004","node_id":"node-004","label":"Graphics Engine","description":"Viz Engine outputs","version":"1690000000:000000000","type":"urn:x-nmos:device:generic","senders":["snd-006"],"receivers":["rcv-006"],"controls":[{"type":"urn:x-nmos:control:sr-ctrl/v1.1","href":"http://192.168.1.40/x-nmos/connection/v1.1"}],"tags":{},"_demo":true,"_type":"device","_enrichedAt":1790843880121}],"senders":[{"id":"snd-001","label":"Camera A - PGM Video","description":"HD 1080i 59.94 Video","device_id":"dev-001","flow_id":"flow-001","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":"http://192.168.1.10/sdp/video-pgm.sdp","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"studio-a","role":"camera"},"format":"urn:x-nmos:format:video","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"video","_enrichedAt":1790843880121},{"id":"snd-002","label":"Camera A - Intercom Audio","description":"AES67 Audio 48kHz","device_id":"dev-001","flow_id":"flow-002","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":null,"version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","role":"audio"},"format":"urn:x-nmos:format:audio","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"audio","_enrichedAt":1790843880121},{"id":"snd-003","label":"Switcher PGM Output","description":"Program output 1080i","device_id":"dev-002","flow_id":"flow-003","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":"http://192.168.1.20/sdp/pgm.sdp","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","role":"pgm"},"format":"urn:x-nmos:format:video","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"video","_enrichedAt":1790843880121},{"id":"snd-004","label":"Console PGM Mix","description":"Stereo program mix","device_id":"dev-003","flow_id":"flow-004","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":null,"version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","role":"audio-pgm"},"format":"urn:x-nmos:format:audio","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"audio","_enrichedAt":1790843880121},{"id":"snd-005","label":"Console Monitor Mix","description":"Monitor mix output","device_id":"dev-003","flow_id":"flow-005","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":null,"version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","role":"audio-mon"},"format":"urn:x-nmos:format:audio","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"audio","_enrichedAt":1790843880121},{"id":"snd-006","label":"Graphics Fill+Key","description":"RGBA Graphics Output","device_id":"dev-004","flow_id":"flow-006","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":null,"version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","role":"graphics"},"format":"urn:x-nmos:format:video","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"video","_enrichedAt":1790843880121}],"receivers":[{"id":"rcv-001","label":"Switcher Input 1","description":"SDI Input 1 via 2110","device_id":"dev-002","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","input":"1"},"format":"urn:x-nmos:format:video","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"video","_enrichedAt":1790843880121},{"id":"rcv-002","label":"Switcher Input 2","description":"SDI Input 2 via 2110","device_id":"dev-002","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","input":"2"},"format":"urn:x-nmos:format:video","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"video","_enrichedAt":1790843880121},{"id":"rcv-003","label":"Switcher GFX Input","description":"Graphics input","device_id":"dev-002","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","input":"3"},"format":"urn:x-nmos:format:video","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"video","_enrichedAt":1790843880121},{"id":"rcv-004","label":"Console Input 1","description":"Audio return","device_id":"dev-003","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","input":"1"},"format":"urn:x-nmos:format:audio","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"audio","_enrichedAt":1790843880121},{"id":"rcv-005","label":"Console Return Feed","description":"PGM return","device_id":"dev-003","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","input":"2"},"format":"urn:x-nmos:format:audio","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"audio","_enrichedAt":1790843880121},{"id":"rcv-006","label":"Viz Engine Preview","description":"Preview input for Viz","device_id":"dev-004","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","input":"1"},"format":"urn:x-nmos:format:video","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"video","_enrichedAt":1790843880121}],"healthStatus":{"node-001":{"resourceId":"node-001","status":"online"},"node-002":{"resourceId":"node-002","status":"online"},"node-003":{"resourceId":"node-003","status":"online"},"node-004":{"resourceId":"node-004","status":"online"}},"rules":[{"id":"rule-device-offline-alert","name":"Alert on device offline","trigger":{"event":"device:offline"},"condition":{"type":"always"},"action":{"type":"alert","params":{"severity":"error","message":"Device went offline"}},"createdAt":"2026-10-01T08:38:00.111Z","enabled":true},{"id":"rule-log-connections","name":"Log all connection events","trigger":{"event":"connection:failed"},"condition":{"type":"always"},"action":{"type":"log","params":{}},"createdAt":"2026-10-01T08:38:00.111Z","enabled":true}],"alerts":[],"connections":[{"id":"demo-c1","senderId":"snd-001","receiverId":"rcv-001","status":"active"},{"id":"demo-c2","senderId":"snd-002","receiverId":"rcv-004","status":"active"}],"timestamp":"2026-10-01T08:38:00.659Z"};
+  var LIC  = {"state":"licensed","licensee":"Demo Studio","edition":"site"};
+  var ws = null;
+  var DEMO_ME = { name:'Demo', username:'demo', role:'operator', roleName:'Operator', uid:'demo', shared:false, admin:false, mustChange:false };
+  function authAnswer(u){
+    if (u.indexOf('/api/auth/me')>-1) return { ok:true, signedIn:true, me:DEMO_ME, setup:false, setupHere:false, pin:false, shared:false, roles:{}, pending:[], gone:null };
+    if (u.indexOf('/api/auth/')>-1)   return { ok:true };
+    return null;
+  }
+  function R(body, status){ status=status||200; var res = { ok: status<400, status: status,
+    headers: { get: function(){ return 'application/json'; } },
+    json: function(){ return Promise.resolve(body); }, text: function(){ return Promise.resolve(JSON.stringify(body)); },
+    blob: function(){ return Promise.resolve(new Blob([JSON.stringify(body, null, 2)], { type:'application/json' })); } };
+    res.clone = function(){ return res; }; return Promise.resolve(res); }
+  function send(obj){ if(ws && ws.onmessage) ws.onmessage({ data: JSON.stringify(obj) }); }
+  function FakeWS(){ ws = this; this.readyState=1;
+    setTimeout(function(){ if(ws.onopen) ws.onopen(); send({ type:'FULL_STATE_SNAPSHOT', payload: SNAP });
+      [1,2,3].forEach(function(d){ setTimeout(function(){ try{ if(typeof renderAll==='function') renderAll(); }catch(e){} }, 150*d); });
+    }, 70); }
+  FakeWS.prototype.send=function(){}; FakeWS.prototype.close=function(){};
+  FakeWS.OPEN = 1; FakeWS.CLOSED = 3;
+  window.WebSocket = FakeWS;
+
+  function nm(addr,status,detail){ return { address:addr, status:status, conflict:false, alloc:detail&&detail.alloc||null, reservation:detail&&detail.reservation||null, external:detail&&detail.external||null }; }
+  var RES = [];
+
+  window.fetch = function(url, opts){
+    opts = opts||{}; var u=String(url && url.url || url); var m=(opts.method||'GET').toUpperCase();
+    try {
+      var a = authAnswer(u); if (a) return R(a);
+      if (u.indexOf('/license/activate')>-1) return R({ ok:true, status: LIC });
+      if (u.indexOf('/license')>-1)          return R(LIC);
+      if (u.indexOf('/api/state')>-1)        return R(SNAP);
+      if (u.indexOf('/registry/refresh')>-1) return R({ ok:true });
+      if (u.indexOf('/manual/export')>-1)    return R({ devices:[], senders:[], receivers:[] });
+      if (u.indexOf('/manual/devices')>-1 && m==='GET') return R([]);
+      if (u.indexOf('/multicast/stats')>-1)  return R({ pool:{ base:'239.100.0.0', size:1000, allocated:2, reserved:1+RES.length, external:0, available:997-RES.length }, conflicts:0, conflictDetails:[], reservations:[], allocations:[], external:[] });
+      if (u.indexOf('/multicast/map')>-1)    return R([
+        nm('239.100.0.0','allocated',{ alloc:{ senderId:(SNAP.senders[0]||{}).id, receiverId:(SNAP.receivers[0]||{}).id, port:5000 } }),
+        nm('239.100.0.1','allocated',{ alloc:{ senderId:(SNAP.senders[2]||{}).id, receiverId:(SNAP.receivers[1]||{}).id, port:5000 } }),
+        nm('239.100.0.2','reserved', { reservation:{ label:'PGM spare', note:'reserved for studio A' } }),
+        nm('239.100.0.3','available'), nm('239.100.0.4','available'), nm('239.100.0.5','available') ]);
+      if (u.indexOf('/multicast/reserve')>-1 && m==='POST'){ RES.push(1); return R({ ok:true }); }
+      if (u.indexOf('/connect')>-1 && u.indexOf('/disconnect')<0){ var b=JSON.parse(opts.body||'{}');
+        var c={ id:'demo-'+Math.random().toString(36).slice(2,8), senderId:b.senderId, receiverId:b.receiverId, status:'active' };
+        SNAP.connections.push(c); send({ type:'CONNECTION_ADDED', payload:c }); return R({ ok:true, connection:c }); }
+      if (u.indexOf('/disconnect')>-1){ var b2=JSON.parse(opts.body||'{}');
+        var c2=SNAP.connections.filter(function(x){return x.id===b2.connectionId;})[0];
+        SNAP.connections=SNAP.connections.filter(function(x){return x.id!==b2.connectionId;});
+        if(c2) send({ type:'CONNECTION_REMOVED', payload:c2 }); return R({ ok:true }); }
+      if (u.indexOf('/rules')>-1){
+        if (m==='POST'){ var nr=JSON.parse(opts.body||'{}'); nr.id='rule-demo-'+Math.random().toString(36).slice(2,7); nr.enabled=true;
+          SNAP.rules.push(nr); send({ type:'RULE_ADDED', payload:nr }); return R(nr); }
+        var id=(u.split('/rules/')[1]||'').split('?')[0];
+        if (m==='DELETE'){ SNAP.rules=SNAP.rules.filter(function(r){return r.id!==id;}); send({ type:'RULE_REMOVED', payload:{ id:id } }); return R({ ok:true }); }
+        if (m==='PATCH'){ var body=JSON.parse(opts.body||'{}'); var r=SNAP.rules.filter(function(x){return x.id===id;})[0];
+          if(r){ Object.assign(r, body); send({ type:'RULE_UPDATED', payload:r }); } return R(r||{ ok:true }); }
+        return R(SNAP.rules);
+      }
+      if (u.indexOf('/alerts')>-1 && m==='PATCH') return R({ ok:true });
+    } catch(e){ /* fall through */ }
+    return R({ ok:true });
+  };
+})();
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   TEUNKEY BROADCAST — range-auth.js: the sign-in page and the account menu,
+   the same in every product of the range.
+
+   Richard, 2026-10-01 (Anthony's ask): "being able to reset your password and
+   all … make sure that these are also all streamlined and the sign-in process
+   is the same on each one of them."
+
+   ONE SOURCE: broadcast-projects/shared/range/. `node tools/sync-range.mjs`
+   copies it into Deck Planner, NMOS Quartermaster and NMOS Scout (Signal
+   Captain renders the same page from its own panel.js, held to it by
+   tools/range-check.mjs). Never edit a copy.
+
+   ⚠ It is a PORT of Signal Captain's gate (panel.js, audit 2.78 B14–B16, C9,
+     C10), which is the one that has been through real failures: the sign-in
+     never fails silently, never goes out twice, keeps what was typed when the
+     server — not the person — was the problem, and only says "not right" when
+     the server said exactly that.
+   ⚠ No innerHTML with anything a person typed or a server sent: textContent only.
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function (root) {
+  'use strict';
+
+  /* Every sentence a person reads, in one place, so the four products cannot
+     drift apart word by word. {p} is the product name. */
+  const STRINGS = {
+    username: 'Username',
+    password: 'Password',
+    signIn: 'Sign in',
+    forgotLink: 'Forgot your password?',
+    pinLink: 'Use the team PIN instead',
+    accountLink: 'Sign in with my own account instead',
+    pinWho: 'Your name or position',
+    pinWhoHint: 'for example Gallery desk',
+    pin: 'Team PIN',
+    forgotText: 'Type your username. An administrator will set a new password for you and send it to you.',
+    forgotGo: 'Ask for a new password',
+    forgotBack: 'Back to sign in',
+    forgotNeedName: 'Type your username first.',
+    forgotDone: 'Sent. If “{u}” is an account here, an administrator has been asked to set a new password. '
+      + 'They will send it to you. Not heard back? Ask them directly.',
+    setupTitle: 'Set up {p}',
+    setupText: 'Create the administrator account. You will use it to sign in, and to give everyone else their own account.',
+    setupName: 'Your name',
+    setupPassword: 'Choose a password',
+    setupAgain: 'The same password again',
+    setupGo: 'Create and sign in',
+    needUsername: 'Choose a username.',
+    setupElsewhere: '{p} is not set up yet. Open it on the computer it runs on ({here}) and create the administrator account there.',
+    newPassword: 'New password',
+    newAgain: 'New password again',
+    atLeast8: 'At least 8 characters.',
+    cantReach: 'Cannot reach {p}. Check the connection and try again.',
+    tooMany: 'Too many wrong sign-ins. Wait a moment, then try again.',
+    nameTaken: 'That name belongs to an account. Pick another name.',
+    expired: 'This account expired{on}. Ask an administrator to extend it, then sign in again.',
+    badLogin: 'That username or password is not right.',
+    badPin: 'That PIN is not right.',
+    noAnswer: '{p} did not answer. Try again in a moment.',
+    storage: 'This browser is blocking storage for this site. You can sign in, but you will need to sign in again '
+      + 'after every reload. Allow site data for {host} to stay signed in.',
+    sessionEnded: 'Your session has ended. Sign in again.',
+    sessionExpired: 'Your account has expired. Ask an administrator to extend it, then sign in again.',
+    sessionRemoved: 'Your account has been removed. Sign in with another account.',
+    range: 'Teunkey Broadcast',
+    signOut: 'Sign out',
+    changePassword: 'Change password',
+    manageAccounts: 'Manage accounts',
+    acctHere: 'You are signed in on this device.',
+    acctPin: 'This is the team PIN login. Sign out to sign in with your own account.',
+    acctPinSub: 'Signed in with the team PIN ({r})',
+    askedOne: '{n} asked for a new password.',
+    askedMany: '{n} people asked for a new password.',
+    cpTitle: 'Change your password',
+    cpFirstTitle: 'Set your own password',
+    cpSub: 'You will stay signed in on this device.',
+    cpFirstSub: 'You signed in with a password you were given. Choose one of your own.',
+    cpCurrent: 'Current password',
+    cpFirstCurrent: 'The password you were given',
+    cpGo: 'Change it',
+    cpNeedCur: 'Type your current password.',
+    cpNeedNew: 'Choose a new password.',
+    cpShort: 'That is under 8 characters.',
+    cpMismatch: 'Those two do not match.',
+    cpSame: 'That is the password you already have.',
+    cpDone: 'Password changed',
+    cancel: 'Cancel',
+    done: 'Done',
+    close: 'Close',
+  };
+  const fill = (s, v) => String(s).replace(/\{(\w+)\}/g, (m, k) => (v && v[k] != null ? String(v[k]) : m));
+
+  /* ── tiny DOM helpers ─────────────────────────────────────────────────── */
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function field(label, input) {
+    const l = el('label', 'tkr-field');
+    l.appendChild(el('span', null, label));
+    l.appendChild(input);
+    return l;
+  }
+  function input(type, id, auto, extra) {
+    const i = el('input');
+    i.type = type; if (id) i.id = id; if (auto) i.autocomplete = auto;
+    Object.assign(i, extra || {});
+    return i;
+  }
+  async function readJson(r) { try { return await r.json(); } catch { return null; } }
+
+  /* ── toast (Signal Captain's) ─────────────────────────────────────────── */
+  let toastEl = null; let toastT = 0;
+  function toast(msg, bad) {
+    if (!toastEl) {
+      toastEl = el('div', 'tkr-toast');
+      toastEl.setAttribute('role', 'status'); toastEl.setAttribute('aria-live', 'polite');
+      document.body.appendChild(toastEl);
+    }
+    toastEl.textContent = String(msg || '');
+    toastEl.className = 'tkr-toast' + (bad ? ' tkr-bad' : '');
+    toastEl.hidden = false;
+    clearTimeout(toastT);
+    toastT = setTimeout(() => { toastEl.hidden = true; }, bad ? 4200 : 2000);
+  }
+
+  /* ── dialog (the essentials of Signal Captain's modal.js) ──────────────── */
+  /* ⚠ Dialogs STACK here (a confirm opens over the accounts list). Escape and the
+     backdrop close only the top one; focus goes back to whatever opened it. */
+  const stack = [];
+  const TABBABLE = 'button, input, select, textarea, a[href], [tabindex]';
+  const TEXTLIKE = /^(text|search|password|email|url|tel)$/i;
+  function tabbables(box) {
+    return [...box.querySelectorAll(TABBABLE)].filter((e) => !e.disabled && !e.hidden
+      && e.getAttribute('tabindex') !== '-1' && e.offsetParent !== null);
+  }
+  function onKey(e) {
+    const top = stack[stack.length - 1];
+    if (!top) return;
+    if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); top.close(); return; }
+    if (e.key !== 'Tab') return;
+    const list = tabbables(top.box);
+    if (!list.length) return;
+    const first = list[0]; const last = list[list.length - 1]; const at = document.activeElement;
+    if (!top.box.contains(at)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return; }
+    if (e.shiftKey && at === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && at === last) { e.preventDefault(); first.focus(); }
+  }
+  function coarse() { try { return matchMedia('(pointer: coarse)').matches; } catch { return false; } }
+
+  /**
+   * dialog({ title, sub, body: el | fn(bodyEl), actions: [{label, primary, danger, onClick}], wide })
+   * onClick may return false (or a promise of false) to keep the dialog open.
+   */
+  function dialog(o) {
+    const opts = o || {};
+    const back = el('div', 'tkr-back');
+    const box = el('div', 'tkr-dlg' + (opts.wide ? ' tkr-wide' : ''));
+    box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true');
+    const head = el('div', 'tkr-dlg-head');
+    const h = el('h3', null, opts.title || '');
+    h.id = 'tkr-h-' + Math.random().toString(36).slice(2, 8);
+    box.setAttribute('aria-labelledby', h.id);
+    const x = el('button', 'tkr-x', '×'); x.type = 'button'; x.setAttribute('aria-label', STRINGS.close);
+    head.append(h, x); box.appendChild(head);
+    if (opts.sub) box.appendChild(el('p', 'tkr-dlg-sub', opts.sub));
+    const body = el('div', 'tkr-dlg-body');
+    if (typeof opts.body === 'function') opts.body(body); else if (opts.body) body.appendChild(opts.body);
+    box.appendChild(body);
+    const foot = el('div', 'tkr-dlg-foot');
+    const restore = document.activeElement;
+    const me = { box, back, closed: false };
+    me.close = () => {
+      if (me.closed) return;
+      me.closed = true;
+      back.remove();
+      const i = stack.indexOf(me); if (i >= 0) stack.splice(i, 1);
+      if (!stack.length) document.removeEventListener('keydown', onKey, true);
+      if (restore && restore.focus && document.contains(restore)) { try { restore.focus(); } catch { /* gone */ } }
+      if (opts.onClose) opts.onClose();
+    };
+    const btns = [];
+    (opts.actions || [{ label: STRINGS.done, primary: true }]).forEach((a) => {
+      const b = el('button', 'tkr-btn' + (a.primary ? ' tkr-primary' : '') + (a.danger ? ' tkr-danger' : ''), a.label);
+      b.type = 'button';
+      b.addEventListener('click', async () => {
+        if (b.disabled) return;
+        btns.forEach((y) => { y.disabled = true; });
+        let keep = false;
+        try { keep = a.onClick ? (await a.onClick(me)) === false : false; }
+        finally { btns.forEach((y) => { y.disabled = false; }); }
+        if (!keep) me.close();
+      });
+      btns.push(b); foot.appendChild(b);
+    });
+    if (btns.length) box.appendChild(foot);
+    x.addEventListener('click', () => me.close());
+    back.addEventListener('mousedown', (e) => { if (e.target === back) me.downOnBack = true; });
+    back.addEventListener('click', (e) => { if (e.target === back && me.downOnBack) me.close(); me.downOnBack = false; });
+    back.appendChild(box);
+    document.body.appendChild(back);
+    if (!stack.length) document.addEventListener('keydown', onKey, true);
+    stack.push(me);
+    /* focus: the caller's own choice, else the first text field on screen, else the × — never a footer
+       button (Enter would press it), and on a touch screen the × (a focused field raises the keyboard) */
+    setTimeout(() => {
+      if (box.contains(document.activeElement)) return;
+      const f = coarse() ? null : [...body.querySelectorAll('input, textarea')]
+        .find((e) => e.offsetParent !== null && !e.disabled && !e.readOnly && (e.tagName === 'TEXTAREA' || TEXTLIKE.test(e.type || 'text')));
+      (f || x).focus();
+    }, 30);
+    return me;
+  }
+  /** A confirm that is a real dialog, never window.confirm (a phone may have muted native dialogs). */
+  function confirmBox(title, text, yes, danger) {
+    return new Promise((resolve) => {
+      let answered = false;
+      dialog({
+        title, body: (b) => { String(text).split('\n\n').forEach((t) => b.appendChild(el('p', null, t))); },
+        actions: [
+          { label: STRINGS.cancel },
+          { label: yes, primary: !danger, danger: !!danger, onClick: () => { answered = true; resolve(true); } },
+        ],
+        onClose: () => { if (!answered) resolve(false); },
+      });
+    });
+  }
+
+  /**
+   * A small form in a real dialog — never window.prompt (a phone that has muted dialogs returns null at once,
+   * silently: Signal Captain's Virginia bug). Resolves to { name: value, … } or null when cancelled.
+   * form({ title, sub, go: 'Save', fields: [{ name, label, value, placeholder, options: [[value, text]], hint }] })
+   */
+  function form(o) {
+    return new Promise((resolve) => {
+      let done = false; const inputs = {};
+      dialog({
+        title: o.title, sub: o.sub,
+        body: (b) => {
+          const f = el('form', 'tkr-pw-form'); f.addEventListener('submit', (e) => e.preventDefault());
+          (o.fields || []).forEach((d) => {
+            const w = el('label', 'tkr-pw-field'); w.appendChild(el('span', null, d.label));
+            let i;
+            if (d.options) {
+              i = el('select');
+              d.options.forEach(([v, t]) => { const op = el('option', null, t); op.value = v; i.appendChild(op); });
+              if (d.value != null) i.value = d.value;
+            } else {
+              i = input('text', null, 'off', { value: d.value == null ? '' : d.value, placeholder: d.placeholder || '', spellcheck: false });
+            }
+            inputs[d.name] = i; w.appendChild(i);
+            if (d.hint) w.appendChild(el('span', 'tkr-pw-hint', d.hint));
+            f.appendChild(w);
+          });
+          b.appendChild(f);
+        },
+        actions: [{ label: STRINGS.cancel },
+          { label: o.go || 'Save', primary: true, onClick: () => {
+            done = true;
+            const out = {}; Object.keys(inputs).forEach((k) => { out[k] = inputs[k].value; });
+            resolve(out);
+          } }],
+        onClose: () => { if (!done) resolve(null); },
+      });
+    });
+  }
+
+  /* ── the sign-in page ─────────────────────────────────────────────────── */
+  /**
+   * signin({ product, sub, mark, pin, forgot, setup, note, storageBlocked,
+   *          login(body) → Response, askForPassword(username) → Response,
+   *          createFirst({name, username, password}) → Response, onSignedIn(json) })
+   * Returns { show(note), hide(), node }.
+   * ⚠ login() and friends return the fetch Response itself; this page reads the
+   *   status and the JSON, so every product is judged by the same rules.
+   */
+  function signin(cfg) {
+    const c = Object.assign({ pin: false, forgot: true, setup: null }, cfg);
+    const P = { p: c.product };
+    const page = el('div', 'tkr-signin'); page.id = 'tkr-signin';
+    const form = el('form', 'tkr-card'); form.noValidate = true; form.id = 'tkr-signin-form';
+    const mark = el('img', 'tkr-card-mark'); mark.src = c.mark; mark.alt = '';
+    const title = el('h1', 'tkr-card-title', c.title || c.product);
+    const sub = el('p', 'tkr-card-sub', c.sub || '');
+    form.append(mark, title, sub);
+
+    /* account */
+    const acct = el('div', 'tkr-mode'); acct.dataset.mode = 'account';
+    const u = input('text', 'tkr-username', 'username', { autocapitalize: 'none', spellcheck: false });
+    const pw = input('password', 'tkr-password', 'current-password');
+    acct.append(field(STRINGS.username, u), field(STRINGS.password, pw));
+    /* team PIN */
+    const pinBox = el('div', 'tkr-mode'); pinBox.dataset.mode = 'pin'; pinBox.hidden = true;
+    const who = input('text', 'tkr-who', 'off', { placeholder: STRINGS.pinWhoHint });
+    const pinIn = input('password', 'tkr-pin', 'current-password', { inputMode: 'numeric', className: 'tkr-pin' });
+    pinBox.append(field(STRINGS.pinWho, who), field(STRINGS.pin, pinIn));
+    /* forgot */
+    const fg = el('div', 'tkr-mode'); fg.dataset.mode = 'forgot'; fg.hidden = true;
+    const fgText = el('p', 'tkr-card-text', STRINGS.forgotText);
+    const fgU = input('text', 'tkr-forgot-username', 'username', { autocapitalize: 'none', spellcheck: false });
+    const fgField = field(STRINGS.username, fgU);
+    const fgOk = el('p', 'tkr-ok'); fgOk.setAttribute('role', 'status'); fgOk.hidden = true;
+    fg.append(fgText, fgField, fgOk);
+    /* first run */
+    const st = el('div', 'tkr-mode'); st.dataset.mode = 'setup'; st.hidden = true;
+    const stText = el('p', 'tkr-card-text', STRINGS.setupText);
+    const stName = input('text', 'tkr-setup-name', 'name');
+    const stU = input('text', 'tkr-setup-username', 'username', { autocapitalize: 'none', spellcheck: false });
+    const stP = input('password', 'tkr-setup-password', 'new-password');
+    const stP2 = input('password', 'tkr-setup-again', 'new-password');
+    const stHint = el('p', 'tkr-note', STRINGS.atLeast8);
+    st.append(stText, field(STRINGS.setupName, stName), field(STRINGS.username, stU), field(STRINGS.setupPassword, stP),
+      field(STRINGS.setupAgain, stP2), stHint);
+
+    const note = el('p', 'tkr-note'); note.setAttribute('role', 'status'); note.hidden = true;
+    const go = el('button', 'tkr-btn tkr-primary tkr-wide', STRINGS.signIn); go.type = 'submit'; go.id = 'tkr-go';
+    const err = el('p', 'tkr-err'); err.setAttribute('role', 'alert'); err.hidden = true;
+    const links = el('div', 'tkr-links');
+    const lForgot = el('button', 'tkr-link', STRINGS.forgotLink); lForgot.type = 'button';
+    const lPin = el('button', 'tkr-link', STRINGS.pinLink); lPin.type = 'button';
+    const lBack = el('button', 'tkr-link', STRINGS.forgotBack); lBack.type = 'button';
+    links.append(lForgot, lPin, lBack);
+    const store = el('p', 'tkr-note'); store.hidden = true; store.style.margin = '12px 0 0';
+    form.append(acct, pinBox, fg, st, note, go, err, links, store);
+    const foot = el('p', 'tkr-range', STRINGS.range);
+    page.append(form, foot);
+
+    let mode = 'account';
+    const say = (m) => { err.textContent = m; err.hidden = false; };
+    function setMode(m) {
+      mode = m;
+      acct.hidden = m !== 'account'; pinBox.hidden = m !== 'pin'; fg.hidden = m !== 'forgot'; st.hidden = m !== 'setup';
+      err.hidden = true;
+      title.textContent = m === 'setup' ? fill(STRINGS.setupTitle, P) : (c.title || c.product);
+      go.textContent = m === 'forgot' ? STRINGS.forgotGo : (m === 'setup' ? STRINGS.setupGo : STRINGS.signIn);
+      go.hidden = false; fgField.hidden = false; fgText.hidden = false; fgOk.hidden = true;
+      lForgot.hidden = !(c.forgot && (m === 'account' || m === 'pin'));
+      lPin.hidden = !(c.pin && (m === 'account' || m === 'pin'));
+      lPin.textContent = m === 'pin' ? STRINGS.accountLink : STRINGS.pinLink;
+      lBack.hidden = m !== 'forgot';
+      links.hidden = lForgot.hidden && lPin.hidden && lBack.hidden;
+      setTimeout(() => {
+        const f = { account: u.value ? pw : u, pin: who.value ? pinIn : who, forgot: fgU, setup: stName }[m];
+        if (f && !coarse()) f.focus();
+      }, 30);
+    }
+    lForgot.addEventListener('click', () => { fgU.value = u.value.trim(); setMode('forgot'); });
+    lPin.addEventListener('click', () => setMode(mode === 'pin' ? 'account' : 'pin'));
+    lBack.addEventListener('click', () => setMode('account'));
+
+    function setupElsewhere() {
+      st.hidden = false; acct.hidden = true; pinBox.hidden = true; fg.hidden = true;
+      [...st.children].forEach((x) => { x.hidden = x !== stText; });
+      stText.textContent = fill(STRINGS.setupElsewhere, { p: c.product, here: (c.setup && c.setup.here) || 'localhost' });
+      go.hidden = true; links.hidden = true;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (go.disabled) return;                 // one request on the wire (SC B16)
+      err.hidden = true;
+      if (mode === 'forgot') return forgotSubmit();
+      if (mode === 'setup') return setupSubmit();
+      const body = mode === 'pin'
+        ? { pin: pinIn.value, who: who.value.trim() }
+        : { username: u.value.trim(), password: pw.value };
+      go.disabled = true;
+      let r = null; let j = null;
+      try { r = await c.login(body); j = await readJson(r); }
+      catch { say(fill(STRINGS.cantReach, P)); return; }
+      finally { go.disabled = false; }
+      if (!r.ok) {
+        if (r.status === 429) { say((j && j.message) || STRINGS.tooMany); return; }
+        if (r.status === 409 && mode === 'pin') { say((j && j.message) || STRINGS.nameTaken); who.focus(); return; }
+        if (r.status === 403 && j && j.error === 'expired') {
+          const on = j.expiresAt ? new Date(j.expiresAt) : null;
+          say(fill(STRINGS.expired, { on: on && !isNaN(on) ? ' on ' + on.toLocaleString() : '' }));
+          return;
+        }
+        if ((r.status === 403 || r.status === 401) && j && (j.error === 'bad_login' || j.error === 'bad_pin')) {
+          say(mode === 'pin' ? STRINGS.badPin : STRINGS.badLogin);
+          pw.value = ''; pinIn.value = '';
+          (mode === 'pin' ? pinIn : pw).focus();
+          return;
+        }
+        say(fill(STRINGS.noAnswer, P));
+        return;
+      }
+      if (!j || !(j.token || j.ok)) { say(fill(STRINGS.noAnswer, P)); return; }
+      pw.value = ''; pinIn.value = '';
+      c.onSignedIn(j, body);
+    });
+
+    async function forgotSubmit() {
+      const name = fgU.value.trim();
+      if (!name) { say(STRINGS.forgotNeedName); fgU.focus(); return; }
+      go.disabled = true;
+      let r = null; let j = null;
+      try { r = await c.askForPassword(name); j = await readJson(r); }
+      catch { say(fill(STRINGS.cantReach, P)); return; }
+      finally { go.disabled = false; }
+      if (r.status === 429) { say((j && j.message) || STRINGS.tooMany); return; }
+      if (!r.ok) { say((j && j.message) || fill(STRINGS.noAnswer, P)); return; }
+      fgOk.textContent = fill(STRINGS.forgotDone, { u: name });
+      fgOk.hidden = false; fgField.hidden = true; fgText.hidden = true; go.hidden = true;
+      lBack.focus();
+    }
+
+    async function setupSubmit() {
+      if (!stU.value.trim()) { say(STRINGS.needUsername); stU.focus(); return; }
+      if (stP.value.length < 8) { say(STRINGS.cpShort); stP.focus(); return; }
+      if (stP.value !== stP2.value) { say(STRINGS.cpMismatch); stP2.focus(); return; }
+      go.disabled = true;
+      let r = null; let j = null;
+      try { r = await c.createFirst({ name: stName.value.trim(), username: stU.value.trim(), password: stP.value }); j = await readJson(r); }
+      catch { say(fill(STRINGS.cantReach, P)); return; }
+      finally { go.disabled = false; }
+      if (!r.ok || !j || !j.token) {
+        if (r.status === 403 && j && j.error === 'not_here') { setupElsewhere(); return; }
+        say((j && (j.message || j.error)) || fill(STRINGS.noAnswer, P));
+        return;
+      }
+      stP.value = ''; stP2.value = '';
+      c.onSignedIn(j, { username: stU.value.trim() });
+    }
+
+    function show(why, opts) {
+      const o = opts || {};
+      if (o.pin != null) c.pin = !!o.pin;
+      if (o.setup !== undefined) c.setup = o.setup;
+      note.textContent = why || ''; note.hidden = !why;
+      store.textContent = c.storageBlocked ? fill(STRINGS.storage, { host: location.hostname }) : '';
+      store.hidden = !c.storageBlocked;
+      go.disabled = false;
+      if (!page.isConnected) document.body.appendChild(page);
+      page.hidden = false;
+      if (c.setup) { if (c.setup.canHere === false) setupElsewhere(); else setMode('setup'); }
+      else setMode('account');
+    }
+    function hide() { page.hidden = true; }
+    return { show, hide, node: page, setMode };
+  }
+
+  /* ── the header badges: [Name · Role] [Sign out] ─────────────────────── */
+  function badges(container, o) {
+    container.textContent = '';
+    const wrap = el('span', 'tkr-acct');
+    const first = String(o.name || '').trim().split(/\s+/)[0] || o.name || '';
+    const b = el('button', 'tkr-badge' + (o.admin ? ' tkr-admin' : ''));
+    b.type = 'button';
+    if (o.pending) {
+      const d = el('span', 'tkr-dot');
+      d.title = o.pending === 1 ? 'Someone asked for a new password' : fill(STRINGS.askedMany, { n: o.pending });
+      b.appendChild(d);
+    }
+    b.appendChild(document.createTextNode(first + (o.roleName ? ' · ' + o.roleName : '')));
+    b.title = o.shared ? fill(STRINGS.acctPinSub, { r: o.roleName || '' }) : 'Signed in as ' + (o.username || o.name || '');
+    b.addEventListener('click', () => o.onAccount && o.onAccount());
+    const s = el('button', 'tkr-badge', STRINGS.signOut); s.type = 'button';
+    s.addEventListener('click', () => o.onSignOut && o.onSignOut());
+    wrap.append(b, s);
+    container.appendChild(wrap);
+    return wrap;
+  }
+
+  /* ── the account dialog ──────────────────────────────────────────────── */
+  /**
+   * account({ name, roleName, shared, admin, pending: [{name}], onChangePassword, onManage, onSignOut })
+   */
+  function account(o) {
+    const actions = [];
+    if (o.admin && o.onManage) actions.push({ label: STRINGS.manageAccounts, onClick: () => { o.onManage(); } });
+    if (!o.shared && o.onChangePassword) actions.push({ label: STRINGS.changePassword, onClick: () => { setTimeout(() => o.onChangePassword(false), 0); } });
+    actions.push({ label: STRINGS.signOut, primary: !!o.shared, onClick: () => { o.onSignOut(); } });
+    return dialog({
+      title: o.name || 'Account',
+      sub: o.shared ? fill(STRINGS.acctPinSub, { r: o.roleName || '' }) : (o.roleName || ''),
+      body: (b) => {
+        b.appendChild(el('p', 'tkr-meta', o.shared ? STRINGS.acctPin : STRINGS.acctHere));
+        const p = (o.pending || []).filter(Boolean);
+        if (o.admin && p.length) {
+          b.appendChild(el('div', 'tkr-dlg-note tkr-warn', p.length === 1
+            ? fill(STRINGS.askedOne, { n: p[0].name || p[0].username })
+            : fill(STRINGS.askedMany, { n: p.length })));
+        }
+        /* the other products of the suite, where this one knows them (Scout and Quartermaster) */
+        if (o.links && o.links.length) {
+          b.appendChild(el('p', 'tkr-meta', 'Also in Teunkey Broadcast:'));
+          const ul = el('ul'); ul.style.margin = '4px 0 0 18px'; ul.style.padding = '0';
+          o.links.forEach((l) => {
+            const li = el('li'); const a = el('a', null, l.label); a.href = l.href; a.target = '_blank'; a.rel = 'noopener';
+            a.style.color = 'var(--tkr-accent-soft)'; li.appendChild(a);
+            if (l.note) li.appendChild(el('span', 'tkr-meta', ' — ' + l.note));
+            ul.appendChild(li);
+          });
+          b.appendChild(ul);
+        }
+      },
+      actions,
+    });
+  }
+
+  /* ── change your own password ────────────────────────────────────────── */
+  /* ⚠ One real form with real password inputs (a password manager can fill and save it) and no path that
+     fails quietly — Signal Captain's, after four chained prompt()s did nothing on Virginia's phone. */
+  function changePassword(o) {
+    const first = !!o.first;
+    let cur; let next; let again; let errEl;
+    return dialog({
+      title: first ? STRINGS.cpFirstTitle : STRINGS.cpTitle,
+      sub: first ? STRINGS.cpFirstSub : STRINGS.cpSub,
+      body: (body) => {
+        const form = el('form', 'tkr-pw-form'); form.autocomplete = 'on';
+        const f = (label, id, auto) => {
+          const w = el('label', 'tkr-pw-field'); w.appendChild(el('span', null, label));
+          const i = input('password', id, auto); i.required = true; w.appendChild(i); form.appendChild(w); return i;
+        };
+        if (o.username) { const hiddenU = input('text', null, 'username', { value: o.username, hidden: true, tabIndex: -1 }); form.appendChild(hiddenU); }
+        cur = f(first ? STRINGS.cpFirstCurrent : STRINGS.cpCurrent, 'tkr-pw-cur', 'current-password');
+        next = f(STRINGS.newPassword, 'tkr-pw-new', 'new-password');
+        again = f(STRINGS.newAgain, 'tkr-pw-again', 'new-password');
+        form.appendChild(el('p', 'tkr-pw-hint', STRINGS.atLeast8));
+        errEl = el('p', 'tkr-pw-err'); errEl.hidden = true; form.appendChild(errEl);
+        form.addEventListener('submit', (e) => e.preventDefault());
+        body.appendChild(form);
+        setTimeout(() => { if (!coarse()) cur.focus(); }, 30);
+      },
+      actions: [
+        { label: STRINGS.cancel },
+        { label: STRINGS.cpGo, primary: true, onClick: async () => {
+          const fail = (m, f) => { errEl.textContent = m; errEl.hidden = false; if (f) { f.focus(); f.select(); } return false; };
+          if (!cur.value) return fail(STRINGS.cpNeedCur, cur);
+          if (!next.value) return fail(STRINGS.cpNeedNew, next);
+          if (next.value.length < 8) return fail(STRINGS.cpShort, next);
+          if (next.value !== again.value) return fail(STRINGS.cpMismatch, again);
+          if (next.value === cur.value) return fail(STRINGS.cpSame, next);
+          try { await o.submit({ current: cur.value, next: next.value }); }
+          catch (e) { return fail((e && e.message) || 'That did not work.', cur); }
+          toast(STRINGS.cpDone);
+          if (o.done) o.done();
+          return true;
+        } },
+      ],
+    });
+  }
+
+  /* ── a new password, shown once, with the message to send ────────────── */
+  function loginMessage(o) {
+    const firstName = String(o.name || o.username || '').trim().split(/\s+/)[0] || 'there';
+    return 'Hi ' + firstName + ',\n\n'
+      + 'Here is your login for ' + o.product + (o.roleName ? ' (' + o.roleName.toLowerCase() + ')' : '') + ':\n\n'
+      + (o.url || location.origin + '/') + '\n'
+      + 'Username: ' + o.username + '\n'
+      + 'Password: ' + o.password + '\n\n'
+      + 'You will be asked to choose your own password when you sign in.\n\n'
+      + 'Thanks,';
+  }
+  async function copyText(t) {
+    try { await navigator.clipboard.writeText(t); return true; } catch { /* fall back */ }
+    try {
+      const ta = el('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return ok;
+    } catch { return false; }
+  }
+  function passwordResult(o) {
+    const msg = loginMessage(o);
+    return dialog({
+      title: (o.isNew ? 'Account created — ' : 'New password for ') + (o.name || o.username),
+      sub: 'Shown once. It is stored hashed, so it cannot be read back — only reset again.',
+      body: (b) => {
+        const line = el('p', 'tkr-meta');
+        line.append('Username ', el('b', null, o.username), ' · password:');
+        b.appendChild(line);
+        b.appendChild(el('div', 'tkr-pw-out', o.password));
+        b.appendChild(el('p', 'tkr-meta', 'A message you can send them:'));
+        const ta = el('textarea', 'tkr-msg'); ta.value = msg; ta.readOnly = true; b.appendChild(ta);
+        b.appendChild(el('div', 'tkr-dlg-note', 'They will be asked to choose their own password when they sign in.'));
+      },
+      actions: [
+        { label: 'Copy just the password', onClick: async () => { toast(await copyText(o.password) ? 'Copied' : 'Select the text and copy it by hand', false); return false; } },
+        { label: 'Copy the message', primary: true, onClick: async () => { toast(await copyText(msg) ? 'Copied' : 'Select the text and copy it by hand', false); return false; } },
+        { label: STRINGS.done },
+      ],
+    });
+  }
+
+  /* ── the accounts list, for products with no accounts page of their own ─ */
+  /* (NMOS Quartermaster, NMOS Scout. Signal Captain has Set up ▸ People and Deck Planner /users; their rows
+     carry the same lines and buttons.) */
+  const EXPIRY = [['End of today', 'today'], ['1 day', 1], ['3 days', 3], ['1 week', 7], ['1 month', 30], ['No expiry', 0]];
+  function expiryIso(v) {
+    if (v === 'today') { const d = new Date(); d.setHours(23, 59, 0, 0); return d.toISOString(); }
+    const n = Number(v); return n > 0 ? new Date(Date.now() + n * 864e5).toISOString() : null;
+  }
+  function when(iso) {
+    if (!iso) return '';
+    const d = new Date(iso); if (isNaN(d)) return '';
+    const min = Math.round((Date.now() - d) / 60e3);
+    if (min < 1) return 'just now';
+    if (min < 60) return min + ' min ago';
+    if (min < 24 * 60) return Math.round(min / 60) + ' h ago';
+    return d.toLocaleDateString();
+  }
+  function users(o) {
+    let dlg = null;
+    async function call(fn, ...a) {
+      try { return await fn(...a); } catch (e) { toast((e && e.message) || 'That did not work.', true); return null; }
+    }
+    async function render(body) {
+      body.textContent = '';
+      const j = await call(o.api.list);
+      if (!j) return;
+      const roles = j.roles || o.roles || {};
+      const add = el('div'); add.style.display = 'flex'; add.style.gap = '8px'; add.style.margin = '0 0 12px';
+      const bAdd = el('button', 'tkr-btn tkr-primary tkr-sm', '+ Add someone'); bAdd.type = 'button';
+      bAdd.addEventListener('click', () => addPerson(roles, body));
+      add.appendChild(bAdd); body.appendChild(add);
+      const list = el('div', 'tkr-people');
+      (j.users || []).forEach((p) => list.appendChild(row(p, roles, body)));
+      if (!(j.users || []).length) list.appendChild(el('p', 'tkr-meta', 'Nobody has an account yet.'));
+      body.appendChild(list);
+    }
+    function row(p, roles, body) {
+      const mine = o.me && o.me.uid === p.id;
+      const r = el('div', 'tkr-person' + (p.resetAsked ? ' tkr-asked' : '') + (p.expired ? ' tkr-lapsed' : ''));
+      const who = el('div');
+      const nm = el('div', 'tkr-who', p.name || p.username);
+      if (mine) nm.appendChild(el('span', 'tkr-tag', 'you'));
+      who.appendChild(nm);
+      const bits = [p.username, p.ownPassword ? 'own password' : 'still on the one you sent',
+        p.lastLogin ? 'last in ' + when(p.lastLogin) : 'never signed in'];
+      if (p.expiresAt) bits.push((p.expired ? 'expired ' : 'expires ') + new Date(p.expiresAt).toLocaleString());
+      who.appendChild(el('div', 'tkr-meta', bits.join(' · ')));
+      if (p.resetAsked) who.appendChild(el('div', 'tkr-asked-line', 'Asked for a new password ' + when(p.resetAsked)));
+      r.appendChild(who);
+      const acts = el('div', 'tkr-acts');
+      const sel = el('select', 'tkr-role'); sel.setAttribute('aria-label', 'What ' + (p.name || p.username) + ' can do');
+      Object.keys(roles).forEach((k) => { const op = el('option', null, roles[k].name || k); op.value = k; sel.appendChild(op); });
+      sel.value = p.role; sel.disabled = !!mine; if (mine) sel.title = 'You cannot change your own role';
+      sel.addEventListener('change', async () => {
+        const ok = await call(o.api.role, p.id, sel.value);
+        if (ok) { toast((p.name || p.username) + ' is now ' + ((roles[sel.value] || {}).name || sel.value)); render(body); } else sel.value = p.role;
+      });
+      const bReset = el('button', 'tkr-btn tkr-sm' + (p.resetAsked ? ' tkr-primary' : ''), 'Reset password'); bReset.type = 'button';
+      bReset.addEventListener('click', async () => {
+        let res = null;
+        try { res = await o.api.reset(p.id, false); }
+        catch (e) {
+          if (e && e.status === 409) {
+            const yes = await confirmBox('Reset ' + (p.name || p.username) + '’s password?', (e.message || '') + '\n\nReset it anyway?', 'Reset it', true);
+            if (!yes) return;
+            res = await call(o.api.reset, p.id, true);
+          } else { toast((e && e.message) || 'That did not work.', true); return; }
+        }
+        if (!res) return;
+        passwordResult({ product: o.product, url: o.url, name: p.name, username: p.username, password: res.password,
+          roleName: (roles[p.role] || {}).name });
+        render(body);
+      });
+      acts.append(sel, bReset);
+      const bExp = el('button', 'tkr-btn tkr-sm', p.expired ? 'Give access back' : (p.expiresAt ? 'Change expiry' : 'Add an expiry'));
+      bExp.type = 'button';
+      bExp.addEventListener('click', () => expiry(p, body));
+      acts.appendChild(bExp);
+      if (!mine) {
+        const bDel = el('button', 'tkr-btn tkr-sm tkr-danger', 'Remove'); bDel.type = 'button';
+        bDel.addEventListener('click', async () => {
+          const yes = await confirmBox('Remove ' + (p.name || p.username) + '?', 'They can no longer sign in to ' + o.product + '.', 'Remove', true);
+          if (!yes) return;
+          if (await call(o.api.remove, p.id)) { toast((p.name || p.username) + ' removed'); render(body); }
+        });
+        acts.appendChild(bDel);
+      }
+      r.appendChild(acts);
+      return r;
+    }
+    function expiry(p, body) {
+      let sel;
+      dialog({
+        title: 'Access for ' + (p.name || p.username),
+        body: (b) => {
+          const w = el('label', 'tkr-pw-field'); w.appendChild(el('span', null, 'From now, lasts'));
+          sel = el('select'); EXPIRY.forEach(([t, v]) => { const op = el('option', null, t); op.value = String(v); sel.appendChild(op); });
+          sel.value = p.expiresAt ? '7' : '0'; w.appendChild(sel); b.appendChild(w);
+          b.appendChild(el('div', 'tkr-dlg-note', 'Extending keeps the same account — nothing they made is lost.'));
+        },
+        actions: [{ label: STRINGS.cancel }, { label: 'Save', primary: true, onClick: async () => {
+          if (!(await call(o.api.expiry, p.id, expiryIso(sel.value)))) return false;
+          render(body); return true;
+        } }],
+      });
+    }
+    function addPerson(roles, body) {
+      let nm; let un; let rl; let ex; let errEl;
+      dialog({
+        title: 'Add someone',
+        sub: 'They get a generated password, shown once.',
+        body: (b) => {
+          const form = el('form', 'tkr-pw-form'); form.addEventListener('submit', (e) => e.preventDefault());
+          const f = (label, node) => { const w = el('label', 'tkr-pw-field'); w.append(el('span', null, label), node); form.appendChild(w); return node; };
+          nm = f('Name', input('text', null, 'off', { placeholder: 'Their name' }));
+          un = f('Username', input('text', null, 'off', { placeholder: 'Username (letters and numbers)', autocapitalize: 'none', spellcheck: false }));
+          nm.addEventListener('input', () => {
+            if (un.dataset.touched) return;
+            un.value = nm.value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '').slice(0, 40);
+          });
+          un.addEventListener('input', () => { un.dataset.touched = '1'; });
+          rl = el('select'); Object.keys(roles).forEach((k) => { const op = el('option', null, (roles[k].name || k) + ' — ' + String(roles[k].desc || '').split('.')[0]); op.value = k; rl.appendChild(op); });
+          rl.value = roles.operator ? 'operator' : Object.keys(roles)[0];
+          f('Can do', rl);
+          ex = el('select'); EXPIRY.forEach(([t, v]) => { const op = el('option', null, t); op.value = String(v); ex.appendChild(op); });
+          ex.value = '0'; f('Access lasts', ex);
+          errEl = el('p', 'tkr-pw-err'); errEl.hidden = true; form.appendChild(errEl);
+          b.appendChild(form);
+        },
+        actions: [{ label: STRINGS.cancel }, { label: 'Create', primary: true, onClick: async () => {
+          if (!un.value.trim()) { errEl.textContent = 'Choose a username.'; errEl.hidden = false; un.focus(); return false; }
+          let res;
+          try { res = await o.api.add({ name: nm.value.trim(), username: un.value.trim(), role: rl.value, expiresAt: expiryIso(ex.value) }); }
+          catch (e) { errEl.textContent = (e && e.message) || 'That did not work.'; errEl.hidden = false; return false; }
+          passwordResult({ product: o.product, url: o.url, name: res.user.name, username: res.user.username, password: res.password,
+            roleName: (roles[res.user.role] || {}).name, isNew: true });
+          render(body);
+          return true;
+        } }],
+      });
+    }
+    dlg = dialog({
+      title: 'Accounts',
+      sub: 'Everyone who can sign in to ' + o.product + ', and what each of them can do.',
+      wide: true,
+      body: (b) => { render(b); },
+      actions: [{ label: STRINGS.done }],
+    });
+    return dlg;
+  }
+
+  /* ── the whole client for a product on shared/identity (NMOS Quartermaster, NMOS Scout) ─────────────────
+   * identityClient({ product, sub, mark, tokenKey, badges: element, links, onReady(me), onSignedOut() })
+   *   → { start(), signOut(), token(), me(), authHeaders(), wsUrl(path) }
+   * ⚠⚠ It wraps window.fetch ONCE so every same-origin /api/ call carries the session and a 401 brings the
+   *   sign-in page back with the reason — the same two rules as Signal Captain's api(). Without the wrap, the
+   *   first account to exist locked the whole UI out (nothing sent a token) — the 2026-08-27 state. */
+  function identityClient(cfg) {
+    const C = Object.assign({ links: [] }, cfg);
+    const lsGet = (k) => { try { return localStorage.getItem(k) || ''; } catch { return ''; } };
+    const lsSet = (k, v) => { try { localStorage.setItem(k, v); return localStorage.getItem(k) === v; } catch { return false; } };
+    const lsDel = (k) => { try { localStorage.removeItem(k); } catch { /* blocked */ } };
+    let token = lsGet(C.tokenKey);
+    let memOnly = false;
+    let me = null; let info = null; let started = false; let pageCtl = null; let showing = false;
+    const rawFetch = root.fetch.bind(root);
+    const authHeaders = () => (token ? { Authorization: 'Bearer ' + token } : {});
+    const sameOriginApi = (u) => {
+      try { const x = new URL(u, location.href); return x.origin === location.origin && x.pathname.startsWith('/api/'); }
+      catch { return false; }
+    };
+    const why = (err) => {
+      const e = String(err || '');
+      if (/expired/i.test(e)) return STRINGS.sessionExpired;
+      if (/no longer exists/i.test(e)) return STRINGS.sessionRemoved;
+      return STRINGS.sessionEnded;
+    };
+    root.fetch = async function (input, init) {
+      const url = typeof input === 'string' ? input : (input && input.url) || '';
+      if (!sameOriginApi(url)) return rawFetch(input, init);
+      const o = Object.assign({}, init);
+      o.headers = Object.assign({}, authHeaders(), (init && init.headers) || {});
+      const r = await rawFetch(input, o);
+      if (r.status === 401 && !/\/api\/auth\//.test(url)) {
+        const j = await r.clone().json().catch(() => ({}));
+        signedOut(j && j.setup ? '' : why(j && j.error), j && j.setup);
+      }
+      return r;
+    };
+    async function call(method, url, body) {
+      const r = await root.fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body == null ? undefined : JSON.stringify(body) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { const e = new Error(j.message || j.error || ('HTTP ' + r.status)); e.status = r.status; e.body = j; throw e; }
+      return j;
+    }
+    function page() {
+      if (pageCtl) return pageCtl;
+      /* C10 of Signal Captain's audit: a browser that blocks site data can sign in, but forgets it on reload */
+      const blocked = !lsSet('tkr-probe', '1'); lsDel('tkr-probe');
+      pageCtl = signin({
+        product: C.product, sub: C.sub, mark: C.mark, forgot: true, storageBlocked: blocked,
+        login: (b) => rawFetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }),
+        askForPassword: (u) => rawFetch('/api/auth/password-help', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u }) }),
+        createFirst: (b) => rawFetch('/api/auth/setup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }),
+        onSignedIn: (j) => {
+          token = String(j.token || '');
+          memOnly = !lsSet(C.tokenKey, token);
+          /* a page that had already started reloads (one clean start, like Signal Captain); a first sign-in
+             just carries on — unless the browser will not store the session, which a reload would lose */
+          if (started && !memOnly) { location.reload(); return; }
+          showing = false; pageCtl.hide();
+          start();
+        },
+      });
+      return pageCtl;
+    }
+    function showPage(note, inf) {
+      const i = inf || info || {};
+      showing = true;
+      page().show(note || '', { pin: !!i.pin, setup: i.setup ? { canHere: !!i.setupHere, here: location.origin } : null });
+    }
+    function signedOut(note, setup) {
+      if (showing) return;
+      token = ''; lsDel(C.tokenKey); me = null;
+      if (C.onSignedOut) { try { C.onSignedOut(); } catch { /* */ } }
+      if (setup) { start(); return; }
+      showPage(note);
+    }
+    function signOut() { token = ''; lsDel(C.tokenKey); location.reload(); }
+    function renderBadges() {
+      if (!C.badges || !me) return;
+      badges(C.badges, { name: me.name, username: me.username, roleName: me.roleName, admin: me.admin, shared: me.shared,
+        pending: me.admin ? (info.pending || []).length : 0, onAccount: accountDialog, onSignOut: signOut });
+    }
+    function usersApi() {
+      return {
+        list: () => call('GET', '/api/auth/users'),
+        add: (b) => call('POST', '/api/auth/users', b),
+        reset: (id, force) => call('POST', '/api/auth/users/' + encodeURIComponent(id) + '/password', { force: !!force }),
+        role: (id, role) => call('POST', '/api/auth/users/' + encodeURIComponent(id) + '/role', { role }),
+        expiry: (id, iso) => call('POST', '/api/auth/users/' + encodeURIComponent(id) + '/expiry', { expiresAt: iso }),
+        remove: (id) => call('DELETE', '/api/auth/users/' + encodeURIComponent(id)),
+      };
+    }
+    function manage() {
+      users({ product: C.product, url: location.origin + '/', me: { uid: me.uid }, roles: info.roles, api: usersApi() });
+    }
+    function changeMine(first) {
+      changePassword({ first, username: me.username, submit: (b) => call('POST', '/api/auth/password', b),
+        done: () => { me.mustChange = false; } });
+    }
+    function accountDialog() {
+      account({ name: me.name, roleName: me.roleName, shared: me.shared, admin: me.admin, pending: info.pending,
+        links: C.links, onChangePassword: changeMine, onManage: manage, onSignOut: signOut });
+    }
+    async function start() {
+      let r = null;
+      try { r = await rawFetch('/api/auth/me', { headers: authHeaders() }); info = await r.json(); }
+      catch { showPage(fill(STRINGS.cantReach, { p: C.product })); return; }
+      if (info && info.signedIn) {
+        me = info.me;
+        renderBadges();
+        if (!started) { started = true; if (C.onReady) C.onReady(me, info); }
+        if (me.mustChange) setTimeout(() => changeMine(true), 400);
+        return;
+      }
+      const note = token && info && info.gone ? why(info.gone) : (token ? STRINGS.sessionEnded : '');
+      token = ''; lsDel(C.tokenKey);
+      showPage(note, info);
+    }
+    return {
+      start, signOut, me: () => me, info: () => info, token: () => token, authHeaders, fetch: rawFetch, call,
+      /** a WebSocket or EventSource address carrying the session (they cannot send a header) */
+      withToken: (path) => path + (path.indexOf('?') < 0 ? '?' : '&') + 't=' + encodeURIComponent(token),
+      refresh: async () => { try { const r = await rawFetch('/api/auth/me', { headers: authHeaders() }); info = await r.json(); if (info.signedIn) { me = info.me; renderBadges(); } } catch { /* */ } },
+    };
+  }
+
+  root.TeunkeyRange = {
+    version: '1', STRINGS, fill, signin, badges, account, changePassword, passwordResult, loginMessage, users, dialog,
+    confirm: confirmBox, form, toast, copyText, identityClient,
+  };
+})(window);
+
+</script>
+<style>
+
+  /* ── the Teunkey Broadcast range palette (2026-10-01) ───────────────────────────────────────────────────
+     Signal Captain's values under Quartermaster's own names, so every rule below keeps reading its own words.
+     ⚠ Blue is the range's control colour; gold is for the logos only. Amber (#ffc45c) is a WARNING again — when
+       the accent was gold, a pending route, the trial badge and every warning read like a selected control.
+     ⚠ No web fonts: Quartermaster runs offline. The range's type is the system's. */
   :root {
-    --bg-void: #080b0f;
-    --bg-base: #0d1117;
-    --bg-raised: #131920;
-    --bg-overlay: #1a2230;
-    --bg-hover: #1e2a3a;
-    --border: rgba(99, 179, 237, 0.08);
-    --border-active: rgba(99, 179, 237, 0.25);
-    --accent: #00d4ff;
-    --accent-dim: rgba(0, 212, 255, 0.12);
-    --accent-glow: rgba(0, 212, 255, 0.35);
-    --green: #00e676;
-    --green-dim: rgba(0, 230, 118, 0.1);
-    --red: #ff4569;
-    --red-dim: rgba(255, 69, 105, 0.1);
-    --amber: #ffab40;
-    --amber-dim: rgba(255, 171, 64, 0.1);
-    --purple: #b388ff;
-    --purple-dim: rgba(179, 136, 255, 0.1);
-    --text-primary: #e8edf2;
-    --text-secondary: #8899aa;
-    --text-muted: #4a5568;
-    --font-ui: 'DM Sans', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-    --radius: 6px;
+    --bg-void: #0b0e14;          /* the page                     = Signal Captain --bg     */
+    --bg-base: #121822;          /* header, rails, dialogs       = --panel                 */
+    --bg-raised: #161d29;        /* cards, controls              = --card                  */
+    --bg-overlay: #1e2635;       /* tags, the hardest surface    = --card2                 */
+    --bg-hover: #1e2635;
+    --border: #232d3e;           /*                              = --line                  */
+    --border-active: #2f5f86;
+    --accent: #3a9ad9;
+    --accent-soft: #7cc4ee;
+    --on-accent: #04121c;
+    --accent-dim: rgba(58, 154, 217, 0.14);
+    --accent-glow: rgba(58, 154, 217, 0.35);
+    --green: #3ddc84;
+    --green-dim: rgba(61, 220, 132, 0.12);
+    --red: #ff5a6a;
+    --red-dim: rgba(255, 90, 106, 0.12);
+    --amber: #ffc45c;
+    --amber-dim: rgba(255, 196, 92, 0.12);
+    --purple: #b9a2ff;
+    --purple-dim: rgba(185, 162, 255, 0.12);
+    --text-primary: #e6ebf4;     /*                              = --fg                    */
+    --text-secondary: #8695ad;   /*                              = --muted                 */
+    --text-muted: #74839c;
+    --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --radius: 8px;
     --radius-lg: 10px;
+    /* the range dialogs opened inside Quartermaster follow the same surfaces */
+    --tkr-panel: var(--bg-base); --tkr-card: var(--bg-raised); --tkr-card2: var(--bg-overlay); --tkr-line: var(--border);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -79,15 +1274,9 @@
   }
 
   .logo-icon {
-    width: 28px;
-    height: 28px;
-    background: var(--accent-dim);
-    border: 1px solid var(--accent-glow);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
   }
 
   .topbar-nav {
@@ -204,8 +1393,8 @@
   /* ── Licence badge + activation modal ── */
   .lic-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:11px;font-family:var(--font-mono);font-weight:600;cursor:pointer;white-space:nowrap;border:1px solid transparent;user-select:none}
   .lic-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
-  .lic-badge.licensed{background:var(--green-dim);color:var(--green);border-color:rgba(0,230,118,.4)}
-  .lic-badge.trial{background:var(--amber-dim);color:var(--amber);border-color:rgba(255,171,64,.4)}
+  .lic-badge.licensed{background:var(--green-dim);color:var(--green);border-color:rgba(61, 220, 132,.4)}
+  .lic-badge.trial{background:var(--amber-dim);color:var(--amber);border-color:rgba(255, 196, 92,.4)}
   .lic-badge.unlicensed{background:var(--red-dim);color:var(--red);border-color:var(--red)}
   .lic-badge:hover{filter:brightness(1.15)}
 
@@ -314,8 +1503,8 @@
   }
 
   @keyframes borderPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 171, 64, 0.4); }
-    50% { box-shadow: 0 0 0 4px rgba(255, 171, 64, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 196, 92, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(255, 196, 92, 0); }
   }
 
   .resource-card.connected-sender { border-left: 3px solid var(--green); }
@@ -339,9 +1528,9 @@
     text-transform: uppercase;
   }
 
-  .format-video { background: rgba(0, 212, 255, 0.15); color: var(--accent); border: 1px solid rgba(0, 212, 255, 0.3); }
+  .format-video { background: rgba(58, 154, 217, 0.15); color: var(--accent); border: 1px solid rgba(58, 154, 217, 0.3); }
   .format-audio { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(179, 136, 255, 0.3); }
-  .format-data { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(255, 171, 64, 0.3); }
+  .format-data { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(255, 196, 92, 0.3); }
 
   .card-label {
     font-size: 13px;
@@ -546,7 +1735,7 @@
     border-radius: 100px;
     background: var(--green-dim);
     color: var(--green);
-    border: 1px solid rgba(0, 230, 118, 0.3);
+    border: 1px solid rgba(61, 220, 132, 0.3);
   }
 
   .conn-status.broken { background: var(--red-dim); color: var(--red); border-color: var(--red); }
@@ -959,7 +2148,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 212, 255, 0.08);
+    background: rgba(58, 154, 217, 0.08);
     color: var(--accent);
     font-size: 11px;
     font-family: var(--font-mono);
@@ -1198,7 +2387,7 @@
     font-size: 12px;
   }
   .mcast-row:hover { background: var(--bg-hover); }
-  .mcast-row.conflict { background: rgba(255,69,105,0.07); }
+  .mcast-row.conflict { background: rgba(255, 90, 106,0.07); }
 
   .mcast-addr {
     font-family: var(--font-mono);
@@ -1217,9 +2406,9 @@
     display: inline-block;
   }
   .mcast-available { background: var(--bg-raised); color: var(--text-muted); border: 1px solid var(--border); }
-  .mcast-allocated { background: var(--green-dim);  color: var(--green);      border: 1px solid rgba(0,230,118,0.4); }
-  .mcast-reserved  { background: var(--accent-dim); color: var(--accent);     border: 1px solid rgba(0,212,255,0.4); }
-  .mcast-external  { background: var(--amber-dim);  color: var(--amber);      border: 1px solid rgba(255,171,64,0.4); }
+  .mcast-allocated { background: var(--green-dim);  color: var(--green);      border: 1px solid rgba(61, 220, 132,0.4); }
+  .mcast-reserved  { background: var(--accent-dim); color: var(--accent);     border: 1px solid rgba(58, 154, 217,0.4); }
+  .mcast-external  { background: var(--amber-dim);  color: var(--amber);      border: 1px solid rgba(255, 196, 92,0.4); }
   .mcast-conflict  { background: var(--red-dim);    color: var(--red);        border: 1px solid var(--red); }
 
   .mcast-detail {
@@ -1268,15 +2457,142 @@
   }
 
 </style>
+<style>
+/* ── NMOS Quartermaster in the Teunkey Broadcast range (2026-10-01) ─────────────────────────────────────────
+   Richard: "make sure that these all follow the same palette, all look the same … use [Signal Captain and Deck
+   Planner] as your base". The palette is set in :root above; this block moves the CHROME from 9–12 px
+   monospace capitals to Signal Captain's type: the system sans at its sizes, bold controls, its buttons, tabs,
+   badges and toast. range/range.css carries the shared parts (sign-in page, account badges, dialogs).
+   ⚠ Monospace stays where the text is data: ids, addresses, endpoints, rule values.
+   ⚠ One block on purpose, listed selector by selector: the rules above keep their layout; these only restate
+     type and colour, so a layout fix above is never fighting a duplicate down here. */
+body { font: 15px/1.5 var(--font-ui); background: var(--bg-void); color-scheme: dark; }
+
+/* header: the lockup, Signal Captain's tabs, the account at the right */
+.topbar { background: var(--bg-base); padding: 9px 16px; gap: 14px; }
+.topbar-nav { margin-left: 6px; gap: 2px; }
+.nav-btn { background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0; color: var(--text-secondary);
+  font: 700 .9rem var(--font-ui); padding: 7px 12px; }
+.nav-btn:hover { background: none; color: var(--text-primary); }
+.nav-btn.active { background: none; border-color: transparent; border-bottom-color: var(--accent); color: var(--text-primary); }
+.topbar-right { gap: 8px; flex-wrap: wrap; }
+.status-pill { font: .8rem var(--font-ui); min-height: 28px; padding: 3px 10px; background: var(--bg-base); color: var(--text-secondary); }
+.status-dot { width: 9px; height: 9px; }
+.alert-badge { font: 800 .8rem var(--font-ui); padding: 3px 10px; min-height: 28px; display: inline-flex; align-items: center; gap: 4px; color: #ff8f9b; }
+.btn-icon { background: var(--bg-raised); color: var(--text-primary); border-radius: 8px; }
+.btn-icon:hover { filter: brightness(1.12); background: var(--bg-raised); }
+
+/* licence badge + dialog: the range's badge and dialog */
+.lic-badge { font: 700 12.5px var(--font-ui); min-height: 28px; padding: 3px 10px; background: var(--bg-base); border: 1px solid var(--border); }
+.lic-badge.licensed { color: #6fe3a5; border-color: rgba(61,220,132,.4); background: var(--bg-base); }
+.lic-badge.trial { color: #ffd489; border-color: rgba(255,196,92,.45); background: var(--bg-base); }
+.lic-badge.unlicensed { color: #ff8f9b; border-color: rgba(255,90,106,.45); background: var(--bg-base); }
+.lic-overlay { background: rgba(0,0,0,.62); padding: 20px; }
+.lic-modal { width: min(560px, 100%); background: var(--bg-base); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.lic-modal-head { padding: 16px 18px 0; border-bottom: 0; }
+.lic-modal-title { font: 800 1.05rem var(--font-ui); }
+.lic-modal-close { font-size: 1.5rem; color: var(--text-secondary); padding: 0 4px; }
+.lic-status { padding: 10px 18px 4px; font-size: 14px; border-bottom: 0; }
+.lic-field { padding: 10px 18px 6px; }
+.lic-field label { font: 700 13px var(--font-ui); text-transform: none; letter-spacing: 0; color: var(--text-secondary); }
+.lic-field textarea { background: var(--bg-void); font-size: 13px; }
+.lic-field textarea:focus { border-color: var(--accent); }
+.lic-msg { font: 700 14px var(--font-ui); }
+.lic-msg.ok { color: #6fe3a5; } .lic-msg.err { color: #ff8f9b; }
+.lic-actions { justify-content: flex-end; gap: 8px; padding: 12px 18px 16px; margin-top: 10px; border-top: 1px solid var(--border); }
+
+/* rails */
+.sidebar-title { font: 800 12px var(--font-ui); letter-spacing: .06em; color: var(--text-secondary); }
+.sidebar-search { font: 14px var(--font-ui); background: var(--bg-void); border-radius: 7px; }
+.sidebar-search:focus { border-color: var(--accent); }
+.resource-card { border-radius: 10px; }
+.resource-card:hover { background: var(--bg-hover); }
+.resource-card.selected { box-shadow: 0 0 0 1px var(--accent) inset; }
+.format-badge { font: 800 11px var(--font-ui); border-radius: 999px; padding: 1px 7px; letter-spacing: .02em; }
+.card-label { font-size: 14px; font-weight: 700; }
+.card-device { font: 13px var(--font-ui); color: var(--text-secondary); }
+.tag { font: 600 12px var(--font-ui); border-radius: 999px; padding: 0 7px; color: var(--text-secondary); background: var(--bg-overlay); }
+.connected-indicator { font: 700 12px var(--font-ui); }
+
+/* the routing canvas */
+.canvas-toolbar { background: var(--bg-void); }
+.toolbar-label { font: 700 14px var(--font-ui); color: var(--text-secondary); }
+.routing-mode-badge { font: 700 12.5px var(--font-ui); }
+.routing-table-title { font: 800 12.5px var(--font-ui); letter-spacing: .06em; color: var(--text-secondary); }
+.conn-name { font-size: 14px; font-weight: 700; }
+.conn-id { font: 12px var(--font-mono); }
+.conn-status { font: 700 12px var(--font-ui); }
+.disconnect-btn { font: 700 12.5px var(--font-ui); background: var(--bg-raised); color: var(--text-primary); border-radius: 8px; }
+.empty-state-title { font: 800 16px var(--font-ui); color: var(--text-primary); }
+.empty-state-body { font: 14px var(--font-ui); }
+.stat-value { font: 800 26px var(--font-ui); }
+.stat-label { font: 700 13px var(--font-ui); text-transform: none; letter-spacing: 0; color: var(--text-secondary); }
+.routing-hint { font: 700 13.5px var(--font-ui); }
+.receiver-connect-overlay { font: 800 13.5px var(--font-ui); }
+
+/* buttons: Signal Captain's .btn and .btn.primary */
+.btn-primary { background: var(--accent); border: 1px solid var(--accent); color: var(--on-accent); font: 700 13px var(--font-ui); border-radius: 8px; }
+.btn-primary:hover { background: var(--accent); color: var(--on-accent); filter: brightness(1.12); box-shadow: none; }
+.btn-ghost { background: var(--bg-raised); border: 1px solid var(--border); color: var(--text-primary); font: 700 13px var(--font-ui); border-radius: 8px; }
+.btn-ghost:hover { filter: brightness(1.12); color: var(--text-primary); border-color: var(--border); }
+.btn-add-row { font: 700 12.5px var(--font-ui); color: var(--text-secondary); }
+.filter-tab { font: 700 12.5px var(--font-ui); padding: 3px 10px; }
+.ack-btn { font: 700 12px var(--font-ui); border-radius: 7px; padding: 3px 9px; color: var(--text-primary); background: var(--bg-raised); }
+
+/* automation, monitoring, devices */
+.section-title { font: 800 12.5px var(--font-ui); letter-spacing: .06em; color: var(--text-secondary); }
+.rule-name { font-size: 14px; font-weight: 700; }
+.rule-row { font-size: 13px; }
+.rule-key { font: 700 12.5px var(--font-ui); color: var(--text-secondary); }
+.rule-val { font: 12.5px var(--font-mono); color: var(--accent-soft); }
+.rule-action-type { font: 700 11.5px var(--font-ui); border-radius: 999px; padding: 0 8px; }
+.alert-severity { font: 800 11px var(--font-ui); border-radius: 999px; padding: 0 7px; }
+.alert-message { font-size: 14px; }
+.alert-time { font: 12px var(--font-ui); }
+.form-label { font: 700 13px var(--font-ui); text-transform: none; letter-spacing: 0; color: var(--text-secondary); }
+.form-input, .form-select { font: 14px var(--font-ui); background: var(--bg-void); border-radius: 7px; }
+.form-input:focus, .form-select:focus { border-color: var(--accent); }
+.node-name { font-size: 15px; font-weight: 700; }
+.node-host { font: 12px var(--font-mono); }
+.node-stat-val { font: 800 18px var(--font-ui); }
+.node-stat-lbl { font: 700 12px var(--font-ui); text-transform: none; color: var(--text-secondary); }
+.manual-node-name { font-size: 15px; font-weight: 800; }
+.manual-badge { font: 800 11px var(--font-ui); }
+.manual-resource-group-title { font: 800 12px var(--font-ui); letter-spacing: .06em; color: var(--text-secondary); }
+.manual-resource-item, .manual-resource-label { font-size: 13px; }
+.manual-resource-format { font: 800 11px var(--font-ui); border-radius: 999px; padding: 0 7px; }
+.manual-endpoint-display { font: 12px var(--font-mono); }
+.form-section-label { font: 800 12.5px var(--font-ui); color: var(--accent-soft); letter-spacing: .04em; }
+.endpoint-hint { font: 12.5px var(--font-ui); }
+
+/* multicast */
+.mcast-row { font-size: 13px; }
+.mcast-addr { font: 700 13px var(--font-mono); }
+.mcast-status-pill { font: 800 11px var(--font-ui); }
+.mcast-detail { font: 12px var(--font-mono); }
+.conflict-type { font: 800 12px var(--font-ui); }
+
+/* the toast: bottom centre, where every product in the range says things */
+.notification-toast { left: 50%; right: auto; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  max-width: min(560px, calc(100vw - 32px)); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+.toast-message { font: 700 14px var(--font-ui); }
+</style>
+<script>
+/* Where the other products of the suite live — generated from shared/suite.json by tools/sync-range.mjs. */
+window.__TK_SUITE__ = {"self":"quartermaster","products":[{"id":"scout","name":"NMOS Scout","tagline":"See the fabric","live":"scout.html"},{"id":"quartermaster","name":"NMOS Quartermaster","tagline":"Orchestrate the IP","live":"quartermaster.html"}]};
+</script>
+
+
+
 </head>
 <body>
 
 <!-- ── Topbar ── -->
 <div class="topbar">
-  <div class="logo">
-    <div class="logo-icon">⚡</div>
-    <span class="logo-text">QUARTERMASTER</span>
-  </div>
+  <!-- the range's lockup: mark + two words, the first heavy (Signal Captain, Deck Planner, NMOS Scout) -->
+  <a class="tkr-brand" href="/" title="NMOS Quartermaster — NMOS control &amp; monitoring">
+    <img class="tkr-brand-mark" src="../assets/quartermaster-mark.png" alt=""/><span class="logo-text"><b>NMOS</b> Quartermaster</span>
+  </a>
 
   <nav class="topbar-nav">
     <button class="nav-btn active" onclick="switchPanel('routing')">Routing</button>
@@ -1299,7 +2615,9 @@
     <div class="alert-badge" id="alert-badge" onclick="switchPanel('monitoring')" style="display:none">
       ⚠ <span id="alert-count">0</span>
     </div>
-    <button class="btn-icon" onclick="refreshRegistry()" title="Refresh registry">↻</button>
+    <button class="btn-icon" onclick="refreshRegistry()" title="Refresh registry" aria-label="Refresh the registry">↻</button>
+    <!-- the account, at the right-hand end like every product in the range: [Name · Role] [Sign out] -->
+    <span id="acct"></span>
   </div>
 </div>
 
@@ -1336,7 +2654,7 @@
         <div id="routing-mode-indicator" style="display:none" class="routing-mode-badge">
           ⬡ Select receiver to complete connection
         </div>
-        <button class="btn-ghost" style="margin-left:auto;font-size:11px" onclick="cancelRouting()">Cancel</button>
+        <button class="btn-ghost" style="margin-left:auto;font-size:13px" onclick="cancelRouting()">Cancel</button>
       </div>
       <div class="canvas-area">
         <!-- Stats -->
@@ -1363,7 +2681,7 @@
         <div class="routing-table">
           <div class="routing-table-header">
             <span class="routing-table-title">Active Connections</span>
-            <span id="conn-count" class="status-pill" style="font-size:11px">0 streams</span>
+            <span id="conn-count" class="status-pill" style="font-size:13px">0 streams</span>
           </div>
           <div id="connections-list">
             <div class="empty-state">
@@ -1380,7 +2698,7 @@
         </div>
 
         <!-- Last sync -->
-        <div style="font-size:10px;font-family:var(--font-mono);color:var(--text-muted);text-align:center;margin-top:8px" id="sync-time"></div>
+        <div style="font:12.5px var(--font-ui);color:var(--text-secondary);text-align:center;margin-top:8px" id="sync-time"></div>
       </div>
     </div>
 
@@ -1422,7 +2740,7 @@
     <div class="panel" id="panel-monitoring">
       <div class="canvas-toolbar">
         <span class="toolbar-label">System Alerts &amp; Health</span>
-        <button class="btn-ghost" style="margin-left:auto;font-size:11px" onclick="clearAlerts()">Acknowledge All</button>
+        <button class="btn-ghost" style="margin-left:auto;font-size:13px" onclick="clearAlerts()">Acknowledge All</button>
       </div>
       <div class="panel-content">
         <div class="section-title">Alerts</div>
@@ -1443,7 +2761,7 @@
         <span class="toolbar-label">Multicast Address Pool Manager</span>
         <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
           <span id="mcast-conflict-badge" style="display:none" class="alert-badge">⚠ <span id="mcast-conflict-count">0</span> conflicts</span>
-          <button class="btn-ghost" style="font-size:11px" onclick="loadMulticast()">↻ Refresh</button>
+          <button class="btn-ghost" style="font-size:13px" onclick="loadMulticast()">↻ Refresh</button>
           <button class="btn-primary" onclick="showReserveForm()">+ Reserve Address</button>
         </div>
       </div>
@@ -1482,10 +2800,10 @@
         <div class="section-title">Address Pool</div>
         <div class="routing-table">
           <div class="routing-table-header" style="display:grid;grid-template-columns:160px 90px 1fr 120px;gap:12px;padding:8px 14px">
-            <span style="font-size:10px;font-family:var(--font-mono);color:var(--text-muted)">ADDRESS</span>
-            <span style="font-size:10px;font-family:var(--font-mono);color:var(--text-muted)">STATUS</span>
-            <span style="font-size:10px;font-family:var(--font-mono);color:var(--text-muted)">DETAIL</span>
-            <span style="font-size:10px;font-family:var(--font-mono);color:var(--text-muted)">ACTIONS</span>
+            <span style="font:800 13px var(--font-ui);color:var(--text-secondary)">Address</span>
+            <span style="font:800 13px var(--font-ui);color:var(--text-secondary)">Status</span>
+            <span style="font:800 13px var(--font-ui);color:var(--text-secondary)">Detail</span>
+            <span style="font:800 13px var(--font-ui);color:var(--text-secondary)">Actions</span>
           </div>
           <div id="mcast-address-table" style="max-height:380px;overflow-y:auto">
             <div class="empty-state"><div class="empty-state-body">Loading…</div></div>
@@ -1500,8 +2818,8 @@
       <div class="canvas-toolbar">
         <span class="toolbar-label">Manual Device Management — Registry-Free Mode</span>
         <div style="display:flex;gap:8px;margin-left:auto">
-          <button class="btn-ghost" style="font-size:11px" onclick="exportManualDevices()">⬇ Export JSON</button>
-          <label class="btn-ghost" style="font-size:11px;cursor:pointer">
+          <button class="btn-ghost" style="font-size:13px" onclick="exportManualDevices()">⬇ Export JSON</button>
+          <label class="btn-ghost" style="font-size:13px;cursor:pointer">
             ⬆ Import JSON
             <input type="file" accept=".json" style="display:none" onchange="importManualDevices(event)">
           </label>
@@ -1572,77 +2890,17 @@
 </div>
 
 <script>
-/* ===== NMOS Quartermaster — live demo backend stub ===== */
-(function(){
-  var SNAP = {"nodes":[{"id":"node-001","label":"Camera Node A","description":"Sony Venice 2 Camera","href":"http://192.168.1.10","version":"1690000000:000000000","hostname":"venice-cam-a","caps":{},"tags":{},"api":{"versions":["v1.3"]},"services":[],"clocks":[],"interfaces":[],"_demo":true,"_type":"node","_enrichedAt":1782227010444},{"id":"node-002","label":"Switcher Node","description":"Grass Valley LDX 86","href":"http://192.168.1.20","version":"1690000000:000000000","hostname":"gv-switcher","caps":{},"tags":{},"api":{"versions":["v1.3"]},"services":[],"clocks":[],"interfaces":[],"_demo":true,"_type":"node","_enrichedAt":1782227010444},{"id":"node-003","label":"Audio Node","description":"Lawo mc²96 Console","href":"http://192.168.1.30","version":"1690000000:000000000","hostname":"lawo-mc96","caps":{},"tags":{},"api":{"versions":["v1.3"]},"services":[],"clocks":[],"interfaces":[],"_demo":true,"_type":"node","_enrichedAt":1782227010444},{"id":"node-004","label":"Graphics Node","description":"Vizrt Viz Engine","href":"http://192.168.1.40","version":"1690000000:000000000","hostname":"viz-engine-1","caps":{},"tags":{},"api":{"versions":["v1.3"]},"services":[],"clocks":[],"interfaces":[],"_demo":true,"_type":"node","_enrichedAt":1782227010444}],"devices":[{"id":"dev-001","node_id":"node-001","label":"Camera A - Video","description":"Primary camera device","version":"1690000000:000000000","type":"urn:x-nmos:device:generic","senders":["snd-001","snd-002"],"receivers":[],"controls":[{"type":"urn:x-nmos:control:sr-ctrl/v1.1","href":"http://192.168.1.10/x-nmos/connection/v1.1"}],"tags":{},"_demo":true,"_type":"device","_enrichedAt":1782227010444},{"id":"dev-002","node_id":"node-002","label":"Switcher - Inputs","description":"Switcher input device","version":"1690000000:000000000","type":"urn:x-nmos:device:generic","senders":["snd-003"],"receivers":["rcv-001","rcv-002","rcv-003"],"controls":[{"type":"urn:x-nmos:control:sr-ctrl/v1.1","href":"http://192.168.1.20/x-nmos/connection/v1.1"}],"tags":{},"_demo":true,"_type":"device","_enrichedAt":1782227010444},{"id":"dev-003","node_id":"node-003","label":"Audio Console - Send","description":"Audio console output","version":"1690000000:000000000","type":"urn:x-nmos:device:generic","senders":["snd-004","snd-005"],"receivers":["rcv-004","rcv-005"],"controls":[{"type":"urn:x-nmos:control:sr-ctrl/v1.1","href":"http://192.168.1.30/x-nmos/connection/v1.1"}],"tags":{},"_demo":true,"_type":"device","_enrichedAt":1782227010444},{"id":"dev-004","node_id":"node-004","label":"Graphics Engine","description":"Viz Engine outputs","version":"1690000000:000000000","type":"urn:x-nmos:device:generic","senders":["snd-006"],"receivers":["rcv-006"],"controls":[{"type":"urn:x-nmos:control:sr-ctrl/v1.1","href":"http://192.168.1.40/x-nmos/connection/v1.1"}],"tags":{},"_demo":true,"_type":"device","_enrichedAt":1782227010444}],"senders":[{"id":"snd-001","label":"Camera A - PGM Video","description":"HD 1080i 59.94 Video","device_id":"dev-001","flow_id":"flow-001","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":"http://192.168.1.10/sdp/video-pgm.sdp","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"studio-a","role":"camera"},"format":"urn:x-nmos:format:video","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"video","_enrichedAt":1782227010444},{"id":"snd-002","label":"Camera A - Intercom Audio","description":"AES67 Audio 48kHz","device_id":"dev-001","flow_id":"flow-002","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":null,"version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","role":"audio"},"format":"urn:x-nmos:format:audio","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"audio","_enrichedAt":1782227010444},{"id":"snd-003","label":"Switcher PGM Output","description":"Program output 1080i","device_id":"dev-002","flow_id":"flow-003","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":"http://192.168.1.20/sdp/pgm.sdp","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","role":"pgm"},"format":"urn:x-nmos:format:video","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"video","_enrichedAt":1782227010444},{"id":"snd-004","label":"Console PGM Mix","description":"Stereo program mix","device_id":"dev-003","flow_id":"flow-004","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":null,"version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","role":"audio-pgm"},"format":"urn:x-nmos:format:audio","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"audio","_enrichedAt":1782227010444},{"id":"snd-005","label":"Console Monitor Mix","description":"Monitor mix output","device_id":"dev-003","flow_id":"flow-005","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":null,"version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","role":"audio-mon"},"format":"urn:x-nmos:format:audio","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"audio","_enrichedAt":1782227010444},{"id":"snd-006","label":"Graphics Fill+Key","description":"RGBA Graphics Output","device_id":"dev-004","flow_id":"flow-006","transport":"urn:x-nmos:transport:rtp.mcast","manifest_href":null,"version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","role":"graphics"},"format":"urn:x-nmos:format:video","subscription":{"receiver_id":null,"active":false},"_demo":true,"_type":"sender","_format":"video","_enrichedAt":1782227010444}],"receivers":[{"id":"rcv-001","label":"Switcher Input 1","description":"SDI Input 1 via 2110","device_id":"dev-002","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","input":"1"},"format":"urn:x-nmos:format:video","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"video","_enrichedAt":1782227010444},{"id":"rcv-002","label":"Switcher Input 2","description":"SDI Input 2 via 2110","device_id":"dev-002","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","input":"2"},"format":"urn:x-nmos:format:video","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"video","_enrichedAt":1782227010444},{"id":"rcv-003","label":"Switcher GFX Input","description":"Graphics input","device_id":"dev-002","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","input":"3"},"format":"urn:x-nmos:format:video","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"video","_enrichedAt":1782227010445},{"id":"rcv-004","label":"Console Input 1","description":"Audio return","device_id":"dev-003","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","input":"1"},"format":"urn:x-nmos:format:audio","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"audio","_enrichedAt":1782227010445},{"id":"rcv-005","label":"Console Return Feed","description":"PGM return","device_id":"dev-003","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["audio/L24"]},"tags":{"zone":"studio-a","input":"2"},"format":"urn:x-nmos:format:audio","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"audio","_enrichedAt":1782227010445},{"id":"rcv-006","label":"Viz Engine Preview","description":"Preview input for Viz","device_id":"dev-004","transport":"urn:x-nmos:transport:rtp.mcast","version":"1690000000:000000000","caps":{"media_types":["video/raw"]},"tags":{"zone":"ccr","input":"1"},"format":"urn:x-nmos:format:video","subscription":{"sender_id":null,"active":false},"_demo":true,"_type":"receiver","_format":"video","_enrichedAt":1782227010445}],"healthStatus":{"node-001":{"resourceId":"node-001","status":"online"},"node-002":{"resourceId":"node-002","status":"online"},"node-003":{"resourceId":"node-003","status":"online"},"node-004":{"resourceId":"node-004","status":"online"}},"rules":[{"id":"rule-device-offline-alert","name":"Alert on device offline","trigger":{"event":"device:offline"},"condition":{"type":"always"},"action":{"type":"alert","params":{"severity":"error","message":"Device went offline"}},"createdAt":"2026-05-27T15:23:52.983Z","enabled":true},{"id":"rule-log-connections","name":"Log all connection events","trigger":{"event":"connection:failed"},"condition":{"type":"always"},"action":{"type":"log","params":{}},"createdAt":"2026-05-27T15:23:52.983Z","enabled":true}],"alerts":[],"connections":[{"id":"demo-c1","senderId":"snd-001","receiverId":"rcv-001","status":"active"},{"id":"demo-c2","senderId":"snd-002","receiverId":"rcv-004","status":"active"}],"timestamp":"2026-06-23T15:14:05.712Z"};
-  var LIC  = {"state":"licensed","licensee":"Demo Studio","edition":"site"};
-  var ws = null;
-  function send(obj){ if(ws && ws.onmessage) ws.onmessage({ data: JSON.stringify(obj) }); }
-  function FakeWS(){ ws = this; this.readyState=1;
-    setTimeout(function(){ if(ws.onopen) ws.onopen(); send({ type:'FULL_STATE_SNAPSHOT', payload: SNAP });
-      [1,2,3].forEach(function(d){ setTimeout(function(){ try{ if(typeof renderAll==='function') renderAll(); }catch(e){} }, 150*d); });
-    }, 70); }
-  FakeWS.prototype.send=function(){}; FakeWS.prototype.close=function(){};
-  window.WebSocket = FakeWS;
-
-  function R(body, status){ status=status||200; return Promise.resolve({ ok: status<400, status: status,
-    json:function(){ return Promise.resolve(body); }, text:function(){ return Promise.resolve(JSON.stringify(body)); } }); }
-  function nm(addr,status,detail){ return { address:addr, status:status, conflict:false, alloc:detail&&detail.alloc||null, reservation:detail&&detail.reservation||null, external:detail&&detail.external||null }; }
-
-  window.fetch = function(url, opts){
-    opts = opts||{}; var u=String(url); var m=(opts.method||'GET').toUpperCase();
-    try {
-      if (u.indexOf('/license/activate')>-1) return R({ ok:true, status: LIC });
-      if (u.indexOf('/license')>-1)          return R(LIC);
-      if (u.indexOf('/api/state')>-1)        return R(SNAP);
-      if (u.indexOf('/registry/refresh')>-1) return R({ ok:true });
-      if (u.indexOf('/manual/devices')>-1)   return R([]);
-      if (u.indexOf('/multicast/stats')>-1)  return R({ pool:{ base:'239.100.0.0', size:1000, allocated:2, reserved:1, external:0, available:997 }, conflicts:0, conflictDetails:[], reservations:[], allocations:[], external:[] });
-      if (u.indexOf('/multicast/map')>-1)    return R([
-        nm('239.100.0.0','allocated',{ alloc:{ senderId:(SNAP.senders[0]||{}).id, receiverId:(SNAP.receivers[0]||{}).id, port:5000 } }),
-        nm('239.100.0.1','allocated',{ alloc:{ senderId:(SNAP.senders[2]||{}).id, receiverId:(SNAP.receivers[1]||{}).id, port:5000 } }),
-        nm('239.100.0.2','reserved', { reservation:{ label:'PGM spare', note:'reserved for studio A' } }),
-        nm('239.100.0.3','available'), nm('239.100.0.4','available'), nm('239.100.0.5','available') ]);
-      if (u.indexOf('/connect')>-1){ var b=JSON.parse(opts.body||'{}');
-        var c={ id:'demo-'+Math.random().toString(36).slice(2,8), senderId:b.senderId, receiverId:b.receiverId, status:'active' };
-        SNAP.connections.push(c); send({ type:'CONNECTION_ADDED', payload:c }); return R({ ok:true, connection:c }); }
-      if (u.indexOf('/disconnect')>-1){ var b2=JSON.parse(opts.body||'{}');
-        var c2=SNAP.connections.filter(function(x){return x.id===b2.connectionId;})[0];
-        SNAP.connections=SNAP.connections.filter(function(x){return x.id!==b2.connectionId;});
-        if(c2) send({ type:'CONNECTION_REMOVED', payload:c2 }); return R({ ok:true }); }
-      if (u.indexOf('/rules')>-1){
-        if (m==='POST'){ var nr=JSON.parse(opts.body||'{}'); nr.id='rule-demo-'+Math.random().toString(36).slice(2,7); nr.enabled=true;
-          SNAP.rules.push(nr); send({ type:'RULE_ADDED', payload:nr }); return R(nr); }
-        var id=(u.split('/rules/')[1]||'').split('?')[0];
-        if (m==='DELETE'){ SNAP.rules=SNAP.rules.filter(function(r){return r.id!==id;}); send({ type:'RULE_REMOVED', payload:{ id:id } }); return R({ ok:true }); }
-        if (m==='PATCH'){ var body=JSON.parse(opts.body||'{}'); var r=SNAP.rules.filter(function(x){return x.id===id;})[0];
-          if(r){ Object.assign(r, body); send({ type:'RULE_UPDATED', payload:r }); } return R(r||{ ok:true }); }
-        return R(SNAP.rules);
-      }
-      if (u.indexOf('/alerts')>-1 && m==='PATCH') return R({ ok:true });
-    } catch(e){ /* fall through */ }
-    return R({ ok:true });
-  };
-})();
-</script>
-
-<div id="demoRibbon" style="position:fixed;z-index:99999;left:10px;bottom:10px;display:flex;align-items:center;gap:7px;
-  padding:5px 11px;border-radius:100px;background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.4);
-  color:#00d4ff;font:600 11px/1 'JetBrains Mono',monospace;letter-spacing:.04em;pointer-events:none;backdrop-filter:blur(4px)">
-  <span style="width:6px;height:6px;border-radius:50%;background:#00e676;box-shadow:0 0 6px #00e676"></span>
-  LIVE DEMO · sample data · runs in your browser
-</div>
-<script>
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // NMOS Quartermaster — Frontend Application
 // Communicates with backend via WebSocket (real-time) + REST API
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// Same-origin so the page works whether served by the backend (e.g. homepi:3001)
-// or opened directly from disk in local dev (falls back to localhost:3001).
+// Same-origin so the page works whether served by the backend (e.g. homepi:3011)
+// or opened directly from disk in local dev (falls back to localhost:3011 — the port in shared/suite.json;
+// 3001 was the old default and is taken on HomePi).
 const __originHosted = location.protocol === 'http:' || location.protocol === 'https:';
-const API_BASE = __originHosted ? `${location.origin}/api` : 'http://localhost:3001/api';
-const WS_URL   = __originHosted ? `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws` : 'ws://localhost:3001/ws';
+const API_BASE = __originHosted ? `${location.origin}/api` : 'http://localhost:3011/api';
+const WS_URL   = __originHosted ? `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws` : 'ws://localhost:3011/ws';
 
 // ── Application State ────────────────────────────────────────────────
 const state = {
@@ -1660,8 +2918,21 @@ const state = {
 // the specific message. _fetch is the un-wrapped original (used by the licence
 // calls themselves so they don't re-trigger the modal).
 const _fetch = window.fetch.bind(window);
-window.fetch = async (...args) => {
-  const res = await _fetch(...args);
+// Optional access lock (opt-in): if the server has QM_TOKEN set, control actions
+// need a token. Open the UI once as  …/?token=YOURTOKEN  — it's saved locally and
+// attached to every /api call. Nothing changes when no token is configured.
+let __accessTok = '';
+try {
+  const qp = new URLSearchParams(location.search).get('token');
+  if (qp !== null) { localStorage.setItem('qm.access', qp); history.replaceState(null, '', location.pathname + location.hash); }
+  __accessTok = localStorage.getItem('qm.access') || '';
+} catch (e) { /* localStorage unavailable */ }
+window.fetch = async (input, init) => {
+  if (__accessTok) {
+    const url = typeof input === 'string' ? input : (input && input.url) || '';
+    if (url.indexOf('/api/') !== -1) { init = init || {}; init.headers = Object.assign({}, init.headers, { 'X-Access-Token': __accessTok }); }
+  }
+  const res = await _fetch(input, init);
   if (res.status === 402) { try { openActivate(); } catch (_) { /* defined later */ } }
   return res;
 };
@@ -1669,8 +2940,13 @@ window.fetch = async (...args) => {
 // ── WebSocket Connection ─────────────────────────────────────────────
 let ws, reconnectTimer;
 
+/* ⚠ The live socket carries the session as ?t= (a browser cannot put a header on a WebSocket), and the server
+   closes it with 4001 when there is none or it has ended. A 4001 is NOT retried every 3 s for ever: it asks
+   /api/state, whose 401 brings the range's sign-in page back with the reason. */
+let wsStopped = false;
 function connectWS() {
-  ws = new WebSocket(WS_URL);
+  if (wsStopped) return;
+  ws = new WebSocket(Auth.withToken(WS_URL));
 
   ws.onopen = () => {
     state.wsConnected = true;
@@ -1685,9 +2961,11 @@ function connectWS() {
 
   ws.onerror = () => updateWsStatus(false);
 
-  ws.onclose = () => {
+  ws.onclose = (e) => {
     state.wsConnected = false;
     updateWsStatus(false);
+    if (wsStopped) return;
+    if (e && e.code === 4001) { fetch(`${API_BASE}/state`).catch(() => {}); return; }
     reconnectTimer = setTimeout(connectWS, 3000);
   };
 }
@@ -2137,7 +3415,7 @@ function renderAlerts() {
     <div class="alert-item ${a.severity} ${a.acknowledged ? 'acknowledged' : ''}">
       <div class="alert-header">
         <span class="alert-severity sev-${esc(a.severity)}">${esc(a.severity)}</span>
-        ${!a.acknowledged ? `<button class="ack-btn" onclick="acknowledgeAlert('${a.id}')">Acknowledge</button>` : '<span style="font-size:10px;color:var(--text-muted)">✓ Acknowledged</span>'}
+        ${!a.acknowledged ? `<button class="ack-btn" onclick="acknowledgeAlert('${a.id}')">Acknowledge</button>` : '<span style="font-size:12px;color:var(--text-muted)">✓ Acknowledged</span>'}
       </div>
       <div class="alert-message">${esc(a.message)}</div>
       <div class="alert-time">${new Date(a.timestamp).toLocaleTimeString()}</div>
@@ -2392,7 +3670,8 @@ async function submitActivate() {
   if (!key) { msg.className = 'lic-msg err'; msg.textContent = 'Paste a licence key first.'; return; }
   msg.className = 'lic-msg'; msg.textContent = 'Activating…';
   try {
-    const r = await _fetch(`${API_BASE}/license/activate`, {
+    /* the wrapped fetch: activating is an administrator's job, so it carries the session (2026-10-01) */
+    const r = await fetch(`${API_BASE}/license/activate`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key }),
     });
     const data = await r.json();
@@ -2419,22 +3698,44 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-connectWS();
-loadLicense();
-
-// Fallback: load via REST if WS doesn't connect in 2s
-setTimeout(async () => {
-  if (!state.senders.length) {
-    try {
-      const r = await fetch(`${API_BASE}/state`);
-      const data = await r.json();
-      Object.assign(state, data);
-      renderAll();
-    } catch(e) {
-      showToast('warning', 'Cannot reach Quartermaster backend at localhost:3001');
-    }
-  }
-}, 2000);
+/* Sign in first — the same sign-in page, account badges and account menu as every product in the Teunkey
+   Broadcast range (range/range-auth.js). Nothing reads the plant until somebody has signed in. */
+function suiteLinks() {
+  const S = window.__TK_SUITE__ || {};
+  return (S.products || []).filter((p) => p.id !== S.self).map((p) => ({
+    label: p.name, note: p.tagline || '',
+    href: p.live || ('http://' + location.hostname + ':' + p.port + '/'),
+  }));
+}
+const Auth = TeunkeyRange.identityClient({
+  product: 'NMOS Quartermaster',
+  sub: 'NMOS control & monitoring',
+  mark: '../assets/quartermaster-mark.png',
+  tokenKey: 'qm.token',
+  badges: document.getElementById('acct'),
+  links: suiteLinks(),
+  onReady: () => {
+    wsStopped = false;
+    connectWS();
+    loadLicense();
+    // Fallback: load via REST if WS doesn't connect in 2s
+    setTimeout(async () => {
+      if (!state.senders.length) {
+        try {
+          const r = await fetch(`${API_BASE}/state`);
+          if (!r.ok) return;                    // a 401 has already brought the sign-in page back
+          const data = await r.json();
+          Object.assign(state, data);
+          renderAll();
+        } catch(e) {
+          showToast('warning', 'Cannot reach NMOS Quartermaster. Check that it is running.');
+        }
+      }
+    }, 2000);
+  },
+  onSignedOut: () => { wsStopped = true; clearTimeout(reconnectTimer); try { if (ws) ws.close(); } catch (e) { /* gone */ } },
+});
+Auth.start();
 
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -2512,12 +3813,12 @@ function renderMulticast() {
     if (mcastShowAvailable) {
       html += available.map(renderMcastRow).join('');
       html += `<div class="mcast-row" style="grid-template-columns:1fr">
-        <button class="btn-ghost" style="font-size:11px;justify-self:start" onclick="mcastToggleAvailable()">▲ Hide free addresses</button>
+        <button class="btn-ghost" style="font-size:13px;justify-self:start" onclick="mcastToggleAvailable()">▲ Hide free addresses</button>
       </div>`;
     } else {
       html += `<div class="mcast-row" style="grid-template-columns:1fr auto">
         <span class="mcast-detail" style="color:var(--text-muted)">Free pool addresses hidden — reserve one here or let routing auto-allocate (see Available count above)</span>
-        <button class="btn-ghost" style="font-size:11px" onclick="mcastToggleAvailable()">Show all ▼</button>
+        <button class="btn-ghost" style="font-size:13px" onclick="mcastToggleAvailable()">Show all ▼</button>
       </div>`;
     }
   }
@@ -2561,7 +3862,7 @@ function renderMcastRow(row) {
       break;
     case 'external':
       detailHtml = `<span class="mcast-detail">⚡ External — ${esc(row.external?.label || row.external?.senderId || 'unknown sender')}</span>`;
-      actionsHtml = `<span style="font-size:10px;color:var(--text-muted)">detected</span>`;
+      actionsHtml = `<span style="font-size:12px;color:var(--text-muted)">detected</span>`;
       break;
     default:
       detailHtml  = `<span class="mcast-detail" style="color:var(--text-muted)">—</span>`;
@@ -2648,7 +3949,7 @@ function quickReserve(address) { showReserveForm(address); }
 
 // ── Unreserve ──────────────────────────────────────────────────────────
 async function mcastUnreserve(address) {
-  if (!confirm(`Remove reservation for ${address}?`)) return;
+  if (!(await TeunkeyRange.confirm('Remove the reservation?', `${address} goes back into the pool.`, 'Remove it', true))) return;
   try {
     const r = await fetch(`${API_BASE}/multicast/reserve/${address.replace(/\./g,'_')}`, { method: 'DELETE' });
     if (!r.ok) throw new Error((await r.json()).error);
@@ -2659,7 +3960,7 @@ async function mcastUnreserve(address) {
 
 // ── Manual release ─────────────────────────────────────────────────────
 async function mcastRelease(address) {
-  if (!confirm(`Force-release ${address}? This will not send IS-05 deactivation.`)) return;
+  if (!(await TeunkeyRange.confirm(`Force-release ${address}?`, 'This frees the address here only. It does not send an IS-05 deactivation to the sender.', 'Release it', true))) return;
   try {
     const r = await fetch(`${API_BASE}/multicast/release/${address.replace(/\./g,'_')}`, { method: 'POST' });
     if (!r.ok) throw new Error((await r.json()).error);
@@ -2710,25 +4011,25 @@ function renderManualDevices() {
         <span class="manual-resource-label">${esc(s.label)}</span>
         <div style="display:flex;align-items:center;gap:5px">
           <span class="manual-resource-format format-${getFormat(s)}">${getFormat(s).toUpperCase()}</span>
-          <button onclick="deleteManualSender('${s.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;padding:0 2px" title="Remove">✕</button>
+          <button onclick="deleteManualSender('${s.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:0 2px" title="Remove">✕</button>
         </div>
-      </div>`).join('') || '<div style="font-size:11px;color:var(--text-muted)">None</div>';
+      </div>`).join('') || '<div style="font-size:13px;color:var(--text-muted)">None</div>';
 
     const receiverRows = receivers.map(r => `
       <div class="manual-resource-item">
         <span class="manual-resource-label">${esc(r.label)}</span>
         <div style="display:flex;align-items:center;gap:5px">
           <span class="manual-resource-format format-${getFormat(r)}">${getFormat(r).toUpperCase()}</span>
-          <button onclick="deleteManualReceiver('${r.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;padding:0 2px" title="Remove">✕</button>
+          <button onclick="deleteManualReceiver('${r.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:0 2px" title="Remove">✕</button>
         </div>
-      </div>`).join('') || '<div style="font-size:11px;color:var(--text-muted)">None</div>';
+      </div>`).join('') || '<div style="font-size:13px;color:var(--text-muted)">None</div>';
 
     return `
       <div class="manual-device-card ${isSimulated ? 'simulated' : 'real-is05'}">
         <div class="manual-card-header">
           <div>
             <div class="manual-node-name">${esc(node.label)}</div>
-            <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);margin-top:2px">${esc(node.hostname || '')}</div>
+            <div style="font-size:13px;color:var(--text-muted);font-family:var(--font-mono);margin-top:2px">${esc(node.hostname || '')}</div>
           </div>
           <div style="display:flex;align-items:center;gap:6px">
             <span class="manual-badge badge-manual">MANUAL</span>
@@ -2758,7 +4059,7 @@ function renderManualDevices() {
               ? `🔌 IS-05: <span style="color:var(--green)">${esc(cmEndpoint)}</span>`
               : `⚙ Simulated routing — connections tracked in state only`}
           </div>
-          <button class="btn-ghost" style="font-size:10px" onclick="editEndpoint('${node.id}', '${cmEndpoint || ''}')">
+          <button class="btn-ghost" style="font-size:12px" onclick="editEndpoint('${node.id}', '${cmEndpoint || ''}')">
             ${cmEndpoint ? 'Edit Endpoint' : 'Set IS-05 Endpoint'}
           </button>
         </div>
@@ -2892,10 +4193,15 @@ async function submitAddDevice() {
 
 // ── Quick-add sender/receiver to existing device ──────────────────────
 
+/* ⚠ Real dialogs, not prompt(): a phone that has muted native dialogs returns null at once and the add
+   silently does nothing (Signal Captain's Virginia bug), and a prompt cannot take the range's look. */
+const FORMAT_OPTIONS = [['video', 'Video'], ['audio', 'Audio'], ['data', 'Data']];
 async function addSenderToDevice(deviceId) {
-  const label  = prompt('Sender label:');
-  if (!label) return;
-  const format = prompt('Format (video/audio/data):', 'video') || 'video';
+  const v = await TeunkeyRange.form({ title: 'Add a sender', go: 'Add', fields: [
+    { name: 'label', label: 'Label', placeholder: 'for example PGM Video' },
+    { name: 'format', label: 'Format', options: FORMAT_OPTIONS, value: 'video' }] });
+  if (!v || !v.label.trim()) return;
+  const label = v.label.trim(); const format = v.format || 'video';
   try {
     const r = await fetch(`${API_BASE}/manual/senders`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
@@ -2908,9 +4214,11 @@ async function addSenderToDevice(deviceId) {
 }
 
 async function addReceiverToDevice(deviceId) {
-  const label  = prompt('Receiver label:');
-  if (!label) return;
-  const format = prompt('Format (video/audio/data):', 'video') || 'video';
+  const v = await TeunkeyRange.form({ title: 'Add a receiver', go: 'Add', fields: [
+    { name: 'label', label: 'Label', placeholder: 'for example Monitor Input' },
+    { name: 'format', label: 'Format', options: FORMAT_OPTIONS, value: 'video' }] });
+  if (!v || !v.label.trim()) return;
+  const label = v.label.trim(); const format = v.format || 'video';
   try {
     const r = await fetch(`${API_BASE}/manual/receivers`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
@@ -2925,7 +4233,7 @@ async function addReceiverToDevice(deviceId) {
 // ── Delete operations ─────────────────────────────────────────────────
 
 async function deleteManualNode(nodeId) {
-  if (!confirm('Remove this device and all its senders/receivers?')) return;
+  if (!(await TeunkeyRange.confirm('Remove this device?', 'Its senders and receivers go with it.', 'Remove it', true))) return;
   try {
     const r = await fetch(`${API_BASE}/manual/nodes/${nodeId}`, { method: 'DELETE' });
     if (!r.ok) throw new Error((await r.json()).error);
@@ -2953,8 +4261,11 @@ async function deleteManualReceiver(id) {
 // ── IS-05 endpoint editing ─────────────────────────────────────────────
 
 async function editEndpoint(nodeId, current) {
-  const newUrl = prompt('IS-05 connection management endpoint URL:\n(Leave blank for simulated mode)', current);
-  if (newUrl === null) return; // cancelled
+  const v = await TeunkeyRange.form({ title: 'IS-05 endpoint', go: 'Save', fields: [
+    { name: 'url', label: 'Connection management endpoint URL', value: current || '', placeholder: 'http://10.0.0.21/x-nmos/connection/v1.1',
+      hint: 'Leave it empty for simulated mode.' }] });
+  if (v === null) return; // cancelled
+  const newUrl = v.url;
   try {
     const r = await fetch(`${API_BASE}/manual/nodes/${nodeId}`, {
       method: 'PATCH', headers: {'Content-Type':'application/json'},
@@ -3002,5 +4313,9 @@ async function importManualDevices(event) {
 // Manual devices load is handled inside switchPanel above
 
 </script>
+
+<div id="demoRibbon" style="position:fixed;z-index:99999;left:12px;bottom:12px;padding:6px 11px;border-radius:8px;
+  background:#121822;border:1px solid #232d3e;color:#8695ad;font:13px/1.35 ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  pointer-events:none">Live demo with sample data. It runs in your browser.</div>
 </body>
 </html>

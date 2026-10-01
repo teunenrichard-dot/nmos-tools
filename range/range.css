@@ -1,0 +1,240 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TEUNKEY BROADCAST — the range stylesheet (range.css)
+
+   Richard, 2026-10-01: "make sure that these all follow the same palette, all
+   look the same, and look like they're made … all parts of the same product
+   range. We really do like the look of Signal Captain and Deck Planner, so use
+   those as your base … and the sign-in process is the same on each one."
+
+   ONE SOURCE: broadcast-projects/shared/range/. `node tools/sync-range.mjs`
+   copies it into Signal Captain, Deck Planner, NMOS Quartermaster and NMOS
+   Scout; `--check` fails when a copy has drifted. Never edit a copy.
+
+   ⚠ Every class starts with `tkr-` and every variable with `--tkr-`. The four
+     apps already own `.modal`, `.btn`, `.rg-*`, `.tb-*` and `.badge`; a range
+     rule must never restyle something an app built for itself.
+   ⚠ The values are Signal Captain's own static palette (the one its sign-in
+     page and first paint use). An app may re-point --tkr-* at its own theme
+     for the dialogs that open INSIDE it; the sign-in page never follows an app
+     theme, so all four sign-in pages are the same page.
+   ⚠ PIXELS, never rem: rem follows each product's OWN root size (Signal Captain 16px, the others 15px), so the
+     same rule painted the sign-in 6% smaller in three of them — caught by tools/range-check.mjs. Values = Signal
+     Captain's at its 16px root.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --tkr-bg: #0b0e14;
+  --tkr-panel: #121822;
+  --tkr-card: #161d29;
+  --tkr-card2: #1e2635;
+  --tkr-line: #232d3e;
+  --tkr-fg: #e6ebf4;
+  --tkr-muted: #8695ad;
+  --tkr-accent: #3a9ad9;
+  --tkr-accent-line: #3a9ad9;
+  --tkr-accent-soft: #7cc4ee;
+  --tkr-on-accent: #04121c;
+  --tkr-good: #3ddc84;
+  --tkr-good-soft: #6fe3a5;
+  --tkr-on-good: #05230f;
+  --tkr-bad: #ff5a6a;
+  --tkr-bad-soft: #ff8f9b;
+  --tkr-on-bad: #ffffff;
+  --tkr-warn: #ffc45c;
+  --tkr-warn-soft: #ffd489;
+  --tkr-on-warn: #1a1206;
+  --tkr-gold: #f0b429;            /* the logos' gold — marks only, never a control */
+  --tkr-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --tkr-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ── the sign-in page ─────────────────────────────────────────────────────── */
+/* ⚠ Its own palette, written out here and NOT the app's variables: an app theme
+   (Signal Captain's High contrast, Deck Planner's navy) must not make the four
+   front doors differ. */
+.tkr-signin {
+  --tkr-bg: #0b0e14; --tkr-card: #161d29; --tkr-line: #232d3e; --tkr-fg: #e6ebf4; --tkr-muted: #8695ad;
+  --tkr-accent: #3a9ad9; --tkr-accent-line: #3a9ad9; --tkr-accent-soft: #7cc4ee; --tkr-on-accent: #04121c;
+  --tkr-good-soft: #6fe3a5; --tkr-bad-soft: #ff8f9b; --tkr-warn-soft: #ffd489;
+  position: fixed; inset: 0; z-index: 2147483600; overflow: auto;
+  display: grid; place-items: center; align-content: center; gap: 14px; padding: 24px 16px;
+  font: 15px/1.5 var(--tkr-font); color: var(--tkr-fg); color-scheme: dark;
+  background:
+    radial-gradient(ellipse 60% 60% at center, rgba(4,8,18,.72) 0%, rgba(4,8,18,.50) 60%, rgba(2,5,14,.66) 100%),
+    url('range-backdrop.jpg') center/cover no-repeat, #02050e;
+}
+.tkr-signin[hidden] { display: none; }
+.tkr-signin *, .tkr-signin *::before, .tkr-signin *::after { box-sizing: border-box; }
+.tkr-card {
+  background: var(--tkr-card); border: 1px solid var(--tkr-line); border-radius: 18px;
+  padding: 28px 26px 22px; width: min(380px, 100%); text-align: center;
+  box-shadow: 0 24px 60px rgba(0,0,0,.55);
+}
+.tkr-card-mark {
+  display: block; width: 88px; height: 88px; object-fit: contain; margin: 0 auto 8px;
+  filter: drop-shadow(0 3px 12px rgba(0,0,0,.55));
+}
+.tkr-card-title { margin: 4px 0 2px; font-size: 23.2px; font-weight: 800; line-height: 1.25; color: var(--tkr-fg); }
+.tkr-card-sub { margin: 0 0 18px; font-size: 14.4px; color: var(--tkr-muted); }
+.tkr-card-text { margin: 0 0 14px; font-size: 14.4px; color: var(--tkr-muted); text-align: left; }
+.tkr-mode[hidden] { display: none; }
+.tkr-field { display: block; text-align: left; margin: 0 0 12px; }
+.tkr-field > span { display: block; font-size: 13.12px; font-weight: 700; color: var(--tkr-muted); margin: 0 0 5px; }
+.tkr-field input {
+  display: block; width: 100%; padding: 11px 12px; font: inherit; font-size: 16px;
+  background: var(--tkr-bg); border: 1px solid var(--tkr-line); border-radius: 10px; color: var(--tkr-fg);
+}
+.tkr-field input::placeholder { color: var(--tkr-muted); opacity: .8; }
+.tkr-field input:focus { outline: 2px solid var(--tkr-accent-line); outline-offset: 1px; }
+.tkr-field input.tkr-pin { letter-spacing: .3em; }
+.tkr-note { margin: 0 0 12px; font-size: 13.76px; color: var(--tkr-muted); }
+.tkr-note[hidden], .tkr-err[hidden], .tkr-ok[hidden] { display: none; }
+.tkr-err { margin: 12px 0 0; font-size: 14.08px; font-weight: 700; color: var(--tkr-bad-soft); }
+.tkr-ok { margin: 0 0 14px; font-size: 14.4px; font-weight: 700; color: var(--tkr-good-soft); text-align: left; }
+.tkr-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin: 14px 0 0; }
+.tkr-link {
+  background: none; border: 0; padding: 2px 0; font: inherit; font-size: 13.44px; cursor: pointer;
+  color: var(--tkr-accent-soft); text-decoration: underline; text-underline-offset: 2px;
+}
+.tkr-link:hover { color: var(--tkr-fg); }
+.tkr-link:focus-visible { outline: 2px solid var(--tkr-accent-line); outline-offset: 2px; border-radius: 4px; }
+.tkr-link[hidden] { display: none; }
+.tkr-range { margin: 0; font-size: 12.48px; color: var(--tkr-muted); text-align: center; }
+
+/* ── buttons ──────────────────────────────────────────────────────────────── */
+/* Signal Captain's .btn, value for value. */
+.tkr-btn {
+  background: var(--tkr-card); border: 1px solid var(--tkr-line); color: var(--tkr-fg);
+  border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 700; cursor: pointer; line-height: 1.3;
+}
+.tkr-btn:hover { filter: brightness(1.12); }
+.tkr-btn:focus-visible { outline: 2px solid var(--tkr-accent-line); outline-offset: 2px; }
+.tkr-btn.tkr-primary { background: var(--tkr-accent); border-color: var(--tkr-accent); color: var(--tkr-on-accent); }
+.tkr-btn.tkr-danger { color: var(--tkr-bad-soft); }
+.tkr-btn.tkr-sm { padding: 5px 11px; font-size: 13.12px; }
+.tkr-btn.tkr-wide { display: block; width: 100%; padding: 11px 14px; border-radius: 10px; font-size: 16px; font-weight: 800; }
+.tkr-btn[disabled] { opacity: .5; cursor: not-allowed; filter: none; }
+
+/* ── the header lockup: mark + two-word name ─────────────────────────────── */
+/* Signal Captain's brand: a 26 px mark, the FIRST word heavy, the second not.
+   "Signal Captain", "Deck Planner", "NMOS Quartermaster", "NMOS Scout". */
+.tkr-brand {
+  display: inline-flex; align-items: center; gap: 8px; color: var(--tkr-fg); text-decoration: none;
+  font-family: var(--tkr-font); font-size: 16px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; line-height: 1.2;
+}
+.tkr-brand b { font-weight: 900; }
+.tkr-brand-mark { height: 26px; width: 26px; object-fit: contain; flex: 0 0 auto; filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
+
+/* ── the account badges, right-hand end of every header ──────────────────── */
+/* Signal Captain's .badge at a fine pointer: [Name · Role] [Sign out] */
+.tkr-acct { display: inline-flex; align-items: center; gap: 8px; }
+.tkr-badge {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 3px 10px;
+  border-radius: 999px; background: var(--tkr-panel); border: 1px solid var(--tkr-line);
+  font: inherit; font-family: var(--tkr-font); font-size: 12.48px; line-height: 1.2; color: var(--tkr-muted);
+  cursor: pointer; white-space: nowrap; text-decoration: none;
+}
+.tkr-badge:hover { border-color: var(--tkr-accent); color: var(--tkr-fg); }
+.tkr-badge:focus-visible { outline: 2px solid var(--tkr-accent-line); outline-offset: 2px; }
+.tkr-badge.tkr-admin { color: var(--tkr-warn-soft); border-color: var(--tkr-warn); }
+.tkr-badge .tkr-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--tkr-accent); flex: 0 0 auto; }
+
+/* ── dialogs ──────────────────────────────────────────────────────────────── */
+/* Signal Captain's modal, value for value, under range names. */
+.tkr-back {
+  position: fixed; inset: 0; background: rgba(0,0,0,.62); z-index: 2147483500;
+  display: grid; place-items: center; padding: 20px; font: 15px/1.5 var(--tkr-font); color: var(--tkr-fg);
+}
+.tkr-back *, .tkr-back *::before, .tkr-back *::after { box-sizing: border-box; }
+.tkr-dlg {
+  background: var(--tkr-panel); border: 1px solid var(--tkr-line); border-radius: 14px;
+  width: min(560px, 100%); max-height: 86vh; display: flex; flex-direction: column;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6); text-align: left;
+}
+.tkr-dlg.tkr-wide { width: min(860px, 100%); }
+.tkr-dlg-head { display: flex; align-items: center; gap: 10px; padding: 16px 18px 0; }
+.tkr-dlg-head h3 { margin: 0; font-size: 16.8px; font-weight: 800; flex: 1; line-height: 1.3; }
+.tkr-x {
+  font: inherit; font-size: 24px; line-height: 1; background: none; border: 0; color: var(--tkr-muted);
+  cursor: pointer; padding: 0 4px; border-radius: 6px;
+}
+.tkr-x:hover { color: var(--tkr-fg); }
+.tkr-dlg-sub { margin: 6px 18px 0; color: var(--tkr-muted); font-size: 13.76px; }
+.tkr-dlg-body { padding: 14px 18px; overflow: auto; }
+.tkr-dlg-body p { margin: 0 0 10px; }
+.tkr-dlg-foot {
+  display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; padding: 12px 18px 16px;
+  border-top: 1px solid var(--tkr-line);
+}
+.tkr-dlg-note {
+  background: var(--tkr-card2); border-left: 3px solid var(--tkr-accent); border-radius: 0 8px 8px 0;
+  padding: 10px 12px; color: var(--tkr-muted); font-size: 13.6px; margin: 4px 0 12px;
+}
+.tkr-dlg-note.tkr-warn { border-left-color: var(--tkr-warn); color: var(--tkr-warn-soft); }
+.tkr-meta { color: var(--tkr-muted); font-size: 13.76px; }
+
+/* the password form (Signal Captain's .pw-*) */
+.tkr-pw-form { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.tkr-pw-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.tkr-pw-field > span { font-size: 13.12px; font-weight: 700; color: var(--tkr-muted); }
+.tkr-input, .tkr-pw-field input, .tkr-pw-field select {
+  min-width: 0; width: 100%; background: var(--tkr-bg); border: 1px solid var(--tkr-line); border-radius: 7px;
+  color: var(--tkr-fg); font: inherit; font-size: 15.2px; padding: 8px 10px;
+}
+.tkr-input:focus, .tkr-pw-field input:focus, .tkr-pw-field select:focus { outline: 2px solid var(--tkr-accent-line); outline-offset: 1px; }
+.tkr-pw-hint { margin: 0; font-size: 12.8px; color: var(--tkr-muted); }
+.tkr-pw-err { margin: 0; font-size: 13.6px; font-weight: 700; color: var(--tkr-bad-soft); }
+.tkr-pw-err[hidden] { display: none; }
+
+/* a new password, shown once, and the message to send with it */
+.tkr-pw-out {
+  font-family: var(--tkr-mono); font-size: 16.8px; font-weight: 800; background: var(--tkr-bg);
+  border: 1px dashed var(--tkr-accent); border-radius: 8px; padding: 12px; text-align: center; margin: 10px 0;
+  user-select: all; overflow-wrap: anywhere;
+}
+.tkr-msg {
+  width: 100%; min-height: 168px; resize: vertical; background: var(--tkr-bg); color: var(--tkr-fg);
+  border: 1px solid var(--tkr-line); border-radius: 8px; padding: 10px 12px; font: inherit; font-size: 14.4px; line-height: 1.45;
+}
+
+/* ── accounts list (Signal Captain's People rows) ────────────────────────── */
+.tkr-people { display: grid; gap: 8px; margin: 0 0 6px; }
+.tkr-person {
+  background: var(--tkr-card); border: 1px solid var(--tkr-line); border-radius: 10px;
+  padding: 11px 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.tkr-person .tkr-who { font-weight: 800; }
+.tkr-person .tkr-meta { font-size: 12.8px; }
+.tkr-person .tkr-acts { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.tkr-person.tkr-asked { border-color: rgba(255,196,92,.6); background: rgba(255,196,92,.06); }
+.tkr-person.tkr-lapsed { border-color: rgba(255,196,92,.45); background: rgba(255,196,92,.05); }
+.tkr-asked-line { color: var(--tkr-warn-soft); font-size: 12.8px; font-weight: 700; }
+.tkr-role {
+  background: var(--tkr-card); border: 1px solid var(--tkr-line); color: var(--tkr-fg);
+  border-radius: 7px; padding: 4px 8px; font: inherit; font-size: 12.8px;
+}
+.tkr-tag {
+  display: inline-block; margin-left: 6px; padding: 0 7px; border-radius: 999px; font-size: 11.52px; font-weight: 700;
+  border: 1px solid var(--tkr-line); color: var(--tkr-muted); vertical-align: 1px;
+}
+
+/* ── toast (Signal Captain's) ────────────────────────────────────────────── */
+.tkr-toast {
+  position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  width: max-content; max-width: min(720px, calc(100vw - 32px)); box-sizing: border-box; text-align: center;
+  background: var(--tkr-good); color: var(--tkr-on-good); font: 800 14.08px/1.4 var(--tkr-font);
+  padding: 10px 20px; border-radius: 20px; z-index: 2147483650; pointer-events: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+.tkr-toast.tkr-bad { background: var(--tkr-bad); color: var(--tkr-on-bad); }
+
+@media (max-width: 420px) {
+  .tkr-card { padding: 22px 18px 18px; border-radius: 16px; }
+  .tkr-card-mark { width: 72px; height: 72px; }
+  .tkr-dlg-foot .tkr-btn { flex: 1 1 auto; }
+}
+@media (pointer: coarse) {
+  .tkr-btn, .tkr-badge, .tkr-link, .tkr-role { min-height: 44px; }
+  .tkr-field input, .tkr-input { min-height: 44px; }
+}
+@media print { .tkr-signin, .tkr-back, .tkr-toast { display: none !important; } }

@@ -4,410 +4,1535 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>NMOS Scout</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="icon" type="image/png" href="../assets/scout-icon.png"/>
+<link rel="apple-touch-icon" href="../assets/scout-mark.png"/>
 <style>
-/* ── RESET & VARS ─────────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   TEUNKEY BROADCAST — the range stylesheet (range.css)
+
+   Richard, 2026-10-01: "make sure that these all follow the same palette, all
+   look the same, and look like they're made … all parts of the same product
+   range. We really do like the look of Signal Captain and Deck Planner, so use
+   those as your base … and the sign-in process is the same on each one."
+
+   ONE SOURCE: broadcast-projects/shared/range/. `node tools/sync-range.mjs`
+   copies it into Signal Captain, Deck Planner, NMOS Quartermaster and NMOS
+   Scout; `--check` fails when a copy has drifted. Never edit a copy.
+
+   ⚠ Every class starts with `tkr-` and every variable with `--tkr-`. The four
+     apps already own `.modal`, `.btn`, `.rg-*`, `.tb-*` and `.badge`; a range
+     rule must never restyle something an app built for itself.
+   ⚠ The values are Signal Captain's own static palette (the one its sign-in
+     page and first paint use). An app may re-point --tkr-* at its own theme
+     for the dialogs that open INSIDE it; the sign-in page never follows an app
+     theme, so all four sign-in pages are the same page.
+   ⚠ PIXELS, never rem: rem follows each product's OWN root size (Signal Captain 16px, the others 15px), so the
+     same rule painted the sign-in 6% smaller in three of them — caught by tools/range-check.mjs. Values = Signal
+     Captain's at its 16px root.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --tkr-bg: #0b0e14;
+  --tkr-panel: #121822;
+  --tkr-card: #161d29;
+  --tkr-card2: #1e2635;
+  --tkr-line: #232d3e;
+  --tkr-fg: #e6ebf4;
+  --tkr-muted: #8695ad;
+  --tkr-accent: #3a9ad9;
+  --tkr-accent-line: #3a9ad9;
+  --tkr-accent-soft: #7cc4ee;
+  --tkr-on-accent: #04121c;
+  --tkr-good: #3ddc84;
+  --tkr-good-soft: #6fe3a5;
+  --tkr-on-good: #05230f;
+  --tkr-bad: #ff5a6a;
+  --tkr-bad-soft: #ff8f9b;
+  --tkr-on-bad: #ffffff;
+  --tkr-warn: #ffc45c;
+  --tkr-warn-soft: #ffd489;
+  --tkr-on-warn: #1a1206;
+  --tkr-gold: #f0b429;            /* the logos' gold — marks only, never a control */
+  --tkr-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --tkr-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ── the sign-in page ─────────────────────────────────────────────────────── */
+/* ⚠ Its own palette, written out here and NOT the app's variables: an app theme
+   (Signal Captain's High contrast, Deck Planner's navy) must not make the four
+   front doors differ. */
+.tkr-signin {
+  --tkr-bg: #0b0e14; --tkr-card: #161d29; --tkr-line: #232d3e; --tkr-fg: #e6ebf4; --tkr-muted: #8695ad;
+  --tkr-accent: #3a9ad9; --tkr-accent-line: #3a9ad9; --tkr-accent-soft: #7cc4ee; --tkr-on-accent: #04121c;
+  --tkr-good-soft: #6fe3a5; --tkr-bad-soft: #ff8f9b; --tkr-warn-soft: #ffd489;
+  position: fixed; inset: 0; z-index: 2147483600; overflow: auto;
+  display: grid; place-items: center; align-content: center; gap: 14px; padding: 24px 16px;
+  font: 15px/1.5 var(--tkr-font); color: var(--tkr-fg); color-scheme: dark;
+  background:
+    radial-gradient(ellipse 60% 60% at center, rgba(4,8,18,.72) 0%, rgba(4,8,18,.50) 60%, rgba(2,5,14,.66) 100%),
+    url('../range/range-backdrop.jpg') center/cover no-repeat, #02050e;
+}
+.tkr-signin[hidden] { display: none; }
+.tkr-signin *, .tkr-signin *::before, .tkr-signin *::after { box-sizing: border-box; }
+.tkr-card {
+  background: var(--tkr-card); border: 1px solid var(--tkr-line); border-radius: 18px;
+  padding: 28px 26px 22px; width: min(380px, 100%); text-align: center;
+  box-shadow: 0 24px 60px rgba(0,0,0,.55);
+}
+.tkr-card-mark {
+  display: block; width: 88px; height: 88px; object-fit: contain; margin: 0 auto 8px;
+  filter: drop-shadow(0 3px 12px rgba(0,0,0,.55));
+}
+.tkr-card-title { margin: 4px 0 2px; font-size: 23.2px; font-weight: 800; line-height: 1.25; color: var(--tkr-fg); }
+.tkr-card-sub { margin: 0 0 18px; font-size: 14.4px; color: var(--tkr-muted); }
+.tkr-card-text { margin: 0 0 14px; font-size: 14.4px; color: var(--tkr-muted); text-align: left; }
+.tkr-mode[hidden] { display: none; }
+.tkr-field { display: block; text-align: left; margin: 0 0 12px; }
+.tkr-field > span { display: block; font-size: 13.12px; font-weight: 700; color: var(--tkr-muted); margin: 0 0 5px; }
+.tkr-field input {
+  display: block; width: 100%; padding: 11px 12px; font: inherit; font-size: 16px;
+  background: var(--tkr-bg); border: 1px solid var(--tkr-line); border-radius: 10px; color: var(--tkr-fg);
+}
+.tkr-field input::placeholder { color: var(--tkr-muted); opacity: .8; }
+.tkr-field input:focus { outline: 2px solid var(--tkr-accent-line); outline-offset: 1px; }
+.tkr-field input.tkr-pin { letter-spacing: .3em; }
+.tkr-note { margin: 0 0 12px; font-size: 13.76px; color: var(--tkr-muted); }
+.tkr-note[hidden], .tkr-err[hidden], .tkr-ok[hidden] { display: none; }
+.tkr-err { margin: 12px 0 0; font-size: 14.08px; font-weight: 700; color: var(--tkr-bad-soft); }
+.tkr-ok { margin: 0 0 14px; font-size: 14.4px; font-weight: 700; color: var(--tkr-good-soft); text-align: left; }
+.tkr-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; margin: 14px 0 0; }
+.tkr-link {
+  background: none; border: 0; padding: 2px 0; font: inherit; font-size: 13.44px; cursor: pointer;
+  color: var(--tkr-accent-soft); text-decoration: underline; text-underline-offset: 2px;
+}
+.tkr-link:hover { color: var(--tkr-fg); }
+.tkr-link:focus-visible { outline: 2px solid var(--tkr-accent-line); outline-offset: 2px; border-radius: 4px; }
+.tkr-link[hidden] { display: none; }
+.tkr-range { margin: 0; font-size: 12.48px; color: var(--tkr-muted); text-align: center; }
+
+/* ── buttons ──────────────────────────────────────────────────────────────── */
+/* Signal Captain's .btn, value for value. */
+.tkr-btn {
+  background: var(--tkr-card); border: 1px solid var(--tkr-line); color: var(--tkr-fg);
+  border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 700; cursor: pointer; line-height: 1.3;
+}
+.tkr-btn:hover { filter: brightness(1.12); }
+.tkr-btn:focus-visible { outline: 2px solid var(--tkr-accent-line); outline-offset: 2px; }
+.tkr-btn.tkr-primary { background: var(--tkr-accent); border-color: var(--tkr-accent); color: var(--tkr-on-accent); }
+.tkr-btn.tkr-danger { color: var(--tkr-bad-soft); }
+.tkr-btn.tkr-sm { padding: 5px 11px; font-size: 13.12px; }
+.tkr-btn.tkr-wide { display: block; width: 100%; padding: 11px 14px; border-radius: 10px; font-size: 16px; font-weight: 800; }
+.tkr-btn[disabled] { opacity: .5; cursor: not-allowed; filter: none; }
+
+/* ── the header lockup: mark + two-word name ─────────────────────────────── */
+/* Signal Captain's brand: a 26 px mark, the FIRST word heavy, the second not.
+   "Signal Captain", "Deck Planner", "NMOS Quartermaster", "NMOS Scout". */
+.tkr-brand {
+  display: inline-flex; align-items: center; gap: 8px; color: var(--tkr-fg); text-decoration: none;
+  font-family: var(--tkr-font); font-size: 16px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; line-height: 1.2;
+}
+.tkr-brand b { font-weight: 900; }
+.tkr-brand-mark { height: 26px; width: 26px; object-fit: contain; flex: 0 0 auto; filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
+
+/* ── the account badges, right-hand end of every header ──────────────────── */
+/* Signal Captain's .badge at a fine pointer: [Name · Role] [Sign out] */
+.tkr-acct { display: inline-flex; align-items: center; gap: 8px; }
+.tkr-badge {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 3px 10px;
+  border-radius: 999px; background: var(--tkr-panel); border: 1px solid var(--tkr-line);
+  font: inherit; font-family: var(--tkr-font); font-size: 12.48px; line-height: 1.2; color: var(--tkr-muted);
+  cursor: pointer; white-space: nowrap; text-decoration: none;
+}
+.tkr-badge:hover { border-color: var(--tkr-accent); color: var(--tkr-fg); }
+.tkr-badge:focus-visible { outline: 2px solid var(--tkr-accent-line); outline-offset: 2px; }
+.tkr-badge.tkr-admin { color: var(--tkr-warn-soft); border-color: var(--tkr-warn); }
+.tkr-badge .tkr-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--tkr-accent); flex: 0 0 auto; }
+
+/* ── dialogs ──────────────────────────────────────────────────────────────── */
+/* Signal Captain's modal, value for value, under range names. */
+.tkr-back {
+  position: fixed; inset: 0; background: rgba(0,0,0,.62); z-index: 2147483500;
+  display: grid; place-items: center; padding: 20px; font: 15px/1.5 var(--tkr-font); color: var(--tkr-fg);
+}
+.tkr-back *, .tkr-back *::before, .tkr-back *::after { box-sizing: border-box; }
+.tkr-dlg {
+  background: var(--tkr-panel); border: 1px solid var(--tkr-line); border-radius: 14px;
+  width: min(560px, 100%); max-height: 86vh; display: flex; flex-direction: column;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6); text-align: left;
+}
+.tkr-dlg.tkr-wide { width: min(860px, 100%); }
+.tkr-dlg-head { display: flex; align-items: center; gap: 10px; padding: 16px 18px 0; }
+.tkr-dlg-head h3 { margin: 0; font-size: 16.8px; font-weight: 800; flex: 1; line-height: 1.3; }
+.tkr-x {
+  font: inherit; font-size: 24px; line-height: 1; background: none; border: 0; color: var(--tkr-muted);
+  cursor: pointer; padding: 0 4px; border-radius: 6px;
+}
+.tkr-x:hover { color: var(--tkr-fg); }
+.tkr-dlg-sub { margin: 6px 18px 0; color: var(--tkr-muted); font-size: 13.76px; }
+.tkr-dlg-body { padding: 14px 18px; overflow: auto; }
+.tkr-dlg-body p { margin: 0 0 10px; }
+.tkr-dlg-foot {
+  display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; padding: 12px 18px 16px;
+  border-top: 1px solid var(--tkr-line);
+}
+.tkr-dlg-note {
+  background: var(--tkr-card2); border-left: 3px solid var(--tkr-accent); border-radius: 0 8px 8px 0;
+  padding: 10px 12px; color: var(--tkr-muted); font-size: 13.6px; margin: 4px 0 12px;
+}
+.tkr-dlg-note.tkr-warn { border-left-color: var(--tkr-warn); color: var(--tkr-warn-soft); }
+.tkr-meta { color: var(--tkr-muted); font-size: 13.76px; }
+
+/* the password form (Signal Captain's .pw-*) */
+.tkr-pw-form { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.tkr-pw-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.tkr-pw-field > span { font-size: 13.12px; font-weight: 700; color: var(--tkr-muted); }
+.tkr-input, .tkr-pw-field input, .tkr-pw-field select {
+  min-width: 0; width: 100%; background: var(--tkr-bg); border: 1px solid var(--tkr-line); border-radius: 7px;
+  color: var(--tkr-fg); font: inherit; font-size: 15.2px; padding: 8px 10px;
+}
+.tkr-input:focus, .tkr-pw-field input:focus, .tkr-pw-field select:focus { outline: 2px solid var(--tkr-accent-line); outline-offset: 1px; }
+.tkr-pw-hint { margin: 0; font-size: 12.8px; color: var(--tkr-muted); }
+.tkr-pw-err { margin: 0; font-size: 13.6px; font-weight: 700; color: var(--tkr-bad-soft); }
+.tkr-pw-err[hidden] { display: none; }
+
+/* a new password, shown once, and the message to send with it */
+.tkr-pw-out {
+  font-family: var(--tkr-mono); font-size: 16.8px; font-weight: 800; background: var(--tkr-bg);
+  border: 1px dashed var(--tkr-accent); border-radius: 8px; padding: 12px; text-align: center; margin: 10px 0;
+  user-select: all; overflow-wrap: anywhere;
+}
+.tkr-msg {
+  width: 100%; min-height: 168px; resize: vertical; background: var(--tkr-bg); color: var(--tkr-fg);
+  border: 1px solid var(--tkr-line); border-radius: 8px; padding: 10px 12px; font: inherit; font-size: 14.4px; line-height: 1.45;
+}
+
+/* ── accounts list (Signal Captain's People rows) ────────────────────────── */
+.tkr-people { display: grid; gap: 8px; margin: 0 0 6px; }
+.tkr-person {
+  background: var(--tkr-card); border: 1px solid var(--tkr-line); border-radius: 10px;
+  padding: 11px 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.tkr-person .tkr-who { font-weight: 800; }
+.tkr-person .tkr-meta { font-size: 12.8px; }
+.tkr-person .tkr-acts { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.tkr-person.tkr-asked { border-color: rgba(255,196,92,.6); background: rgba(255,196,92,.06); }
+.tkr-person.tkr-lapsed { border-color: rgba(255,196,92,.45); background: rgba(255,196,92,.05); }
+.tkr-asked-line { color: var(--tkr-warn-soft); font-size: 12.8px; font-weight: 700; }
+.tkr-role {
+  background: var(--tkr-card); border: 1px solid var(--tkr-line); color: var(--tkr-fg);
+  border-radius: 7px; padding: 4px 8px; font: inherit; font-size: 12.8px;
+}
+.tkr-tag {
+  display: inline-block; margin-left: 6px; padding: 0 7px; border-radius: 999px; font-size: 11.52px; font-weight: 700;
+  border: 1px solid var(--tkr-line); color: var(--tkr-muted); vertical-align: 1px;
+}
+
+/* ── toast (Signal Captain's) ────────────────────────────────────────────── */
+.tkr-toast {
+  position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  width: max-content; max-width: min(720px, calc(100vw - 32px)); box-sizing: border-box; text-align: center;
+  background: var(--tkr-good); color: var(--tkr-on-good); font: 800 14.08px/1.4 var(--tkr-font);
+  padding: 10px 20px; border-radius: 20px; z-index: 2147483650; pointer-events: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+.tkr-toast.tkr-bad { background: var(--tkr-bad); color: var(--tkr-on-bad); }
+
+@media (max-width: 420px) {
+  .tkr-card { padding: 22px 18px 18px; border-radius: 16px; }
+  .tkr-card-mark { width: 72px; height: 72px; }
+  .tkr-dlg-foot .tkr-btn { flex: 1 1 auto; }
+}
+@media (pointer: coarse) {
+  .tkr-btn, .tkr-badge, .tkr-link, .tkr-role { min-height: 44px; }
+  .tkr-field input, .tkr-input { min-height: 44px; }
+}
+@media print { .tkr-signin, .tkr-back, .tkr-toast { display: none !important; } }
+
+</style>
+<script>
+/* ===== NMOS Scout — live demo backend stub ===== */
+(function(){
+  var STATE = {"registry":{"url":"http://nmos-registry.local:8080","label":"Primary Registry (mock)","isMock":true,"apis":{"registration":{"versions":["v1.2","v1.3"]},"query":{"versions":["v1.2","v1.3"]}}},"resources":{"nodes":[{"id":"d2e7e1c0-1a2b-4c3d-8e5f-6a7b8c9d0e1f","label":"Camera Encoder A","hostname":"cam-enc-a.local","href":"http://192.168.1.10:3000/","api":{"versions":["v1.2","v1.3"]},"clocks":[{"name":"clk0","ref_type":"ptp"}],"interfaces":[{"name":"eth0","chassis_id":"70:b3:d5:93:10:01","port_id":"70:b3:d5:93:10:01"}],"tags":{},"version":"1687200001:000000000","_warnings":[],"_health":"ok"},{"id":"a1b2c3d4-e5f6-7890-abcd-ef1234567890","label":"Production Switcher","hostname":"prod-sw.local","href":"http://192.168.1.20:3000/","api":{"versions":["v1.2"]},"clocks":[{"name":"clk0","ref_type":"internal"}],"interfaces":[{"name":"eth0","chassis_id":"70:b3:d5:93:10:02","port_id":"70:b3:d5:93:10:02"}],"tags":{},"version":"1687100000:000000000","_warnings":[],"_health":"ok"},{"id":"f9e8d7c6-b5a4-3210-fedc-ba9876543210","label":"Graphics Engine","hostname":"gfx.local","href":"http://192.168.1.30:3000/","api":{"versions":["v1.3"]},"clocks":[{"name":"clk0","ref_type":"ptp"}],"interfaces":[],"tags":{},"version":"1687300000:000000000","_warnings":["No interfaces declared"],"_health":"warn"}],"devices":[{"id":"dev-0001-0000-0000-0000-000000000001","label":"Camera Encoder A - Device","type":"urn:x-nmos:device:generic","node_id":"d2e7e1c0-1a2b-4c3d-8e5f-6a7b8c9d0e1f","senders":["snd-0001-0000-0000-0000-000000000001"],"receivers":["rcv-0001-0000-0000-0000-000000000001"],"controls":[{"type":"urn:x-nmos:control:sr-ctrl/v1.1","href":"http://192.168.1.10:3000/x-nmos/connection/"}],"version":"1687200002:000000000","_warnings":[],"_health":"ok"},{"id":"dev-0002-0000-0000-0000-000000000002","label":"Production Switcher - Video Device","type":"urn:x-nmos:device:generic","node_id":"a1b2c3d4-e5f6-7890-abcd-ef1234567890","senders":["snd-0002-0000-0000-0000-000000000001"],"receivers":["rcv-0002-0000-0000-0000-000000000001","rcv-0002-0000-0000-0000-000000000002"],"controls":[],"version":"1687100001:000000000","_warnings":["No IS-05 Connection API control declared"],"_health":"warn"}],"sources":[{"id":"src-0001-0000-0000-0000-000000000001","label":"Camera A - Video","description":"HD Video from Camera Encoder A","format":"urn:x-nmos:format:video","device_id":"dev-0001-0000-0000-0000-000000000001","parents":[],"clock_name":"clk0","grain_rate":{"numerator":25,"denominator":1},"version":"1687200003:000000000","_warnings":[],"_health":"ok"},{"id":"src-0001-0000-0000-0000-000000000002","label":"Camera A - Audio","description":"AES67 Audio from Camera Encoder A","format":"urn:x-nmos:format:audio","device_id":"dev-0001-0000-0000-0000-000000000001","parents":[],"clock_name":"clk0","grain_rate":{"numerator":48000,"denominator":1},"version":"1687200004:000000000","_warnings":[],"_health":"ok"}],"flows":[{"id":"flw-0001-0000-0000-0000-000000000001","label":"Camera A - HD Video Flow","format":"urn:x-nmos:format:video","source_id":"src-0001-0000-0000-0000-000000000001","device_id":"dev-0001-0000-0000-0000-000000000001","media_type":"video/raw","frame_width":1920,"frame_height":1080,"interlace_mode":"progressive","colorspace":"BT709","version":"1687200005:000000000","_warnings":[],"_health":"ok"},{"id":"flw-0001-0000-0000-0000-000000000002","label":"Camera A - Audio Flow","format":"urn:x-nmos:format:audio","source_id":"src-0001-0000-0000-0000-000000000002","device_id":"dev-0001-0000-0000-0000-000000000001","media_type":"audio/L24","sample_rate":{"numerator":48000,"denominator":1},"bit_depth":24,"version":"1687200006:000000000","_warnings":[],"_health":"ok"}],"senders":[{"id":"snd-0001-0000-0000-0000-000000000001","label":"Camera A - Video Sender","description":"ST 2110-20 Video","flow_id":"flw-0001-0000-0000-0000-000000000001","device_id":"dev-0001-0000-0000-0000-000000000001","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":["eth0"],"subscription":{"receiver_id":"rcv-0002-0000-0000-0000-000000000001","active":true},"manifest_href":"http://192.168.1.10:3000/x-nmos/connection/v1.1/single/senders/snd-0001/transportfile/","version":"1687200007:000000000","_warnings":[],"_health":"ok"},{"id":"snd-0001-0000-0000-0000-000000000002","label":"Camera A - Audio Sender","description":"AES67 Audio","flow_id":"flw-0001-0000-0000-0000-000000000002","device_id":"dev-0001-0000-0000-0000-000000000001","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":["eth0"],"subscription":{"receiver_id":null,"active":false},"manifest_href":"http://192.168.1.10:3000/x-nmos/connection/v1.1/single/senders/snd-0001a/transportfile/","version":"1687200009:000000000","_warnings":[],"_health":"ok"},{"id":"snd-0002-0000-0000-0000-000000000001","label":"Switcher PGM Output","description":"ST 2110-20 Programme","flow_id":null,"device_id":"dev-0002-0000-0000-0000-000000000002","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":["eth0"],"subscription":{"receiver_id":null,"active":false},"manifest_href":null,"version":"1687100002:000000000","_warnings":["flow_id is null — sender has no associated flow","manifest_href is null — SDP not reachable"],"_health":"error"}],"receivers":[{"id":"rcv-0001-0000-0000-0000-000000000001","label":"Camera A - Video Mon","format":"urn:x-nmos:format:video","device_id":"dev-0001-0000-0000-0000-000000000001","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":["eth0"],"subscription":{"sender_id":null,"active":false},"caps":{"media_types":["video/raw"]},"version":"1687200008:000000000","_warnings":[],"_health":"ok"},{"id":"rcv-0001-0000-0000-0000-000000000002","label":"Camera A - Audio Mon","format":"urn:x-nmos:format:audio","device_id":"dev-0001-0000-0000-0000-000000000001","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":["eth0"],"subscription":{"sender_id":null,"active":false},"caps":{"media_types":["audio/L24"]},"version":"1687200010:000000000","_warnings":[],"_health":"ok"},{"id":"rcv-0002-0000-0000-0000-000000000001","label":"Switcher Input A","format":"urn:x-nmos:format:video","device_id":"dev-0002-0000-0000-0000-000000000002","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":["eth0"],"subscription":{"sender_id":"snd-0001-0000-0000-0000-000000000001","active":true},"caps":{},"version":"1687100003:000000000","_warnings":["caps is empty or missing"],"_health":"error"},{"id":"rcv-0002-0000-0000-0000-000000000002","label":"Switcher Input B","format":"urn:x-nmos:format:video","device_id":"dev-0002-0000-0000-0000-000000000002","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":[],"subscription":{"sender_id":null,"active":false},"caps":{},"version":"1687100004:000000000","_warnings":["caps is empty or missing","interface_bindings is empty"],"_health":"error"},{"id":"rcv-0002-0000-0000-0000-000000000003","label":"Switcher Audio In A","format":"urn:x-nmos:format:audio","device_id":"dev-0002-0000-0000-0000-000000000002","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":["eth0"],"subscription":{"sender_id":null,"active":false},"caps":{"media_types":["audio/L24"]},"version":"1687100005:000000000","_warnings":[],"_health":"ok"}],"subscriptions":[]},"diff":null,"lastScan":"2026-10-01T08:37:58.900Z","scanning":false,"scanProgress":"","isMock":true,"logCount":0,"license":{"state":"licensed","licensee":"Demo Studio","edition":"pro"}};
+  var LOG = [];
+  var es = null, esListeners = {};
+  var DEMO_ME = { name:'Demo', username:'demo', role:'operator', roleName:'Operator', uid:'demo', shared:false, admin:false, mustChange:false };
+  function authAnswer(u){
+    if (u.indexOf('/api/auth/me')>-1) return { ok:true, signedIn:true, me:DEMO_ME, setup:false, setupHere:false, pin:false, shared:false, roles:{}, pending:[], gone:null };
+    if (u.indexOf('/api/auth/')>-1)   return { ok:true };
+    return null;
+  }
+  function R(body, status){ status=status||200; var res = { ok: status<400, status: status,
+    headers: { get: function(){ return 'application/json'; } },
+    json: function(){ return Promise.resolve(body); }, text: function(){ return Promise.resolve(JSON.stringify(body)); },
+    blob: function(){ return Promise.resolve(new Blob([JSON.stringify(body, null, 2)], { type:'application/json' })); } };
+    res.clone = function(){ return res; }; return Promise.resolve(res); }
+  function emit(type, data){ (esListeners[type]||[]).forEach(function(cb){ cb({ data: JSON.stringify(data) }); }); }
+  function pushState(){ emit('state', STATE); }
+  function addLog(method, p, status){
+    var e = { ts:new Date().toISOString(), method:method, url:'http://demo-registry.local/x-nmos/'+p,
+              status:status, duration: 18 + Math.floor(Math.random()*70) };
+    LOG.unshift(e); if (LOG.length>200) LOG.pop(); emit('log', e);
+  }
+  function FakeES(){ es = this; setTimeout(function(){ if(es.onopen) es.onopen(); pushState();
+      [1,2,3].forEach(function(d){ setTimeout(function(){ try{ if(typeof renderCurrentSection==='function') renderCurrentSection(); }catch(e){} }, 150*d); });
+      ['/nodes','/devices','/senders','/receivers'].forEach(function(p,i){ setTimeout(function(){ addLog('GET','query/v1.3'+p,200); }, 120+i*90); });
+    }, 60); }
+  FakeES.prototype.addEventListener = function(t,cb){ (esListeners[t]=esListeners[t]||[]).push(cb); };
+  FakeES.prototype.close = function(){};
+  window.EventSource = FakeES;
+
+  function rcv(id){ return STATE.resources.receivers.find(function(x){return x.id===id;}); }
+  function snd(id){ return STATE.resources.senders.find(function(x){return x.id===id;}); }
+
+  window.fetch = function(url, opts){
+    opts = opts||{}; var u = String(url && url.url || url); var m = (opts.method||'GET').toUpperCase();
+    try {
+      var a = authAnswer(u); if (a) return R(a);
+      if (u.indexOf('/api/license/activate')>-1) return R({ ok:true, status: STATE.license });
+      if (u.indexOf('/api/license')>-1)          return R(STATE.license);
+      if (u.indexOf('/api/state')>-1)            return R(STATE);
+      if (u.indexOf('/api/log')>-1){ if(m==='DELETE'){ LOG=[]; return R({ok:true}); } return R(LOG.slice()); }
+      if (u.indexOf('/api/scan')>-1){ STATE.scanning=true; STATE.scanProgress='Discovering APIs…'; pushState();
+        setTimeout(function(){ STATE.scanProgress='Fetching resources…'; pushState(); },350);
+        setTimeout(function(){ STATE.scanning=false; STATE.scanProgress=''; STATE.lastScan=new Date().toISOString();
+          ['/nodes','/devices','/senders','/receivers','/flows'].forEach(function(p){ addLog('GET','query/v1.3'+p,200); }); pushState(); }, 950);
+        return R({ ok:true }); }
+      if (u.indexOf('/api/mock')>-1){ STATE.isMock=true; pushState(); return R({ok:true}); }
+      if (u.indexOf('/api/discover')>-1) return R([{ name:'demo-registry', host:'demo-registry.local', port:80, url:'http://demo-registry.local' }]);
+      if (u.indexOf('/api/route')>-1){ var b=JSON.parse(opts.body||'{}'); var r=rcv(b.receiverId), s=snd(b.senderId);
+        if(r) r.subscription={ sender_id:b.senderId, active:true };
+        if(s) s.subscription=Object.assign({}, s.subscription, { receiver_id:b.receiverId, active:true });
+        addLog('PATCH','connection/v1.1/single/receivers/'+(b.receiverId||'').slice(0,8)+'/staged',200); pushState();
+        return R({ ok:true, staged:{status:200}, active:{status:200} }); }
+      if (u.indexOf('/api/disconnect')>-1){ var b2=JSON.parse(opts.body||'{}'); var r2=rcv(b2.receiverId);
+        if(r2) r2.subscription={ sender_id:null, active:false };
+        addLog('PATCH','connection/v1.1/single/receivers/'+(b2.receiverId||'').slice(0,8)+'/staged',200); pushState();
+        return R({ ok:true, staged:{status:200}, active:{status:200} }); }
+      if (u.indexOf('/api/subscribe')>-1){ addLog('POST','query/v1.3/subscriptions',201); return R({ ok:true, status:201, body:{ id:'demo-sub-1', ws_href:'wss://demo-registry.local/x-nmos/query/subscriptions/demo-sub-1' } }); }
+      if (u.indexOf('/api/proxy')>-1){ addLog('GET','query/v1.3/senders',200); return R({ ok:true, status:200, body: STATE.resources.senders }); }
+      if (u.indexOf('/api/send-to-quartermaster')>-1) return R({ ok:false, error:'In the demo the two tools are not connected. On your network this hands the whole scan to Quartermaster.' }, 409);
+      if (u.indexOf('/api/export')>-1) return R(STATE);
+    } catch(e){ /* fall through */ }
+    return R({ ok:true });
+  };
+})();
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   TEUNKEY BROADCAST — range-auth.js: the sign-in page and the account menu,
+   the same in every product of the range.
+
+   Richard, 2026-10-01 (Anthony's ask): "being able to reset your password and
+   all … make sure that these are also all streamlined and the sign-in process
+   is the same on each one of them."
+
+   ONE SOURCE: broadcast-projects/shared/range/. `node tools/sync-range.mjs`
+   copies it into Deck Planner, NMOS Quartermaster and NMOS Scout (Signal
+   Captain renders the same page from its own panel.js, held to it by
+   tools/range-check.mjs). Never edit a copy.
+
+   ⚠ It is a PORT of Signal Captain's gate (panel.js, audit 2.78 B14–B16, C9,
+     C10), which is the one that has been through real failures: the sign-in
+     never fails silently, never goes out twice, keeps what was typed when the
+     server — not the person — was the problem, and only says "not right" when
+     the server said exactly that.
+   ⚠ No innerHTML with anything a person typed or a server sent: textContent only.
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function (root) {
+  'use strict';
+
+  /* Every sentence a person reads, in one place, so the four products cannot
+     drift apart word by word. {p} is the product name. */
+  const STRINGS = {
+    username: 'Username',
+    password: 'Password',
+    signIn: 'Sign in',
+    forgotLink: 'Forgot your password?',
+    pinLink: 'Use the team PIN instead',
+    accountLink: 'Sign in with my own account instead',
+    pinWho: 'Your name or position',
+    pinWhoHint: 'for example Gallery desk',
+    pin: 'Team PIN',
+    forgotText: 'Type your username. An administrator will set a new password for you and send it to you.',
+    forgotGo: 'Ask for a new password',
+    forgotBack: 'Back to sign in',
+    forgotNeedName: 'Type your username first.',
+    forgotDone: 'Sent. If “{u}” is an account here, an administrator has been asked to set a new password. '
+      + 'They will send it to you. Not heard back? Ask them directly.',
+    setupTitle: 'Set up {p}',
+    setupText: 'Create the administrator account. You will use it to sign in, and to give everyone else their own account.',
+    setupName: 'Your name',
+    setupPassword: 'Choose a password',
+    setupAgain: 'The same password again',
+    setupGo: 'Create and sign in',
+    needUsername: 'Choose a username.',
+    setupElsewhere: '{p} is not set up yet. Open it on the computer it runs on ({here}) and create the administrator account there.',
+    newPassword: 'New password',
+    newAgain: 'New password again',
+    atLeast8: 'At least 8 characters.',
+    cantReach: 'Cannot reach {p}. Check the connection and try again.',
+    tooMany: 'Too many wrong sign-ins. Wait a moment, then try again.',
+    nameTaken: 'That name belongs to an account. Pick another name.',
+    expired: 'This account expired{on}. Ask an administrator to extend it, then sign in again.',
+    badLogin: 'That username or password is not right.',
+    badPin: 'That PIN is not right.',
+    noAnswer: '{p} did not answer. Try again in a moment.',
+    storage: 'This browser is blocking storage for this site. You can sign in, but you will need to sign in again '
+      + 'after every reload. Allow site data for {host} to stay signed in.',
+    sessionEnded: 'Your session has ended. Sign in again.',
+    sessionExpired: 'Your account has expired. Ask an administrator to extend it, then sign in again.',
+    sessionRemoved: 'Your account has been removed. Sign in with another account.',
+    range: 'Teunkey Broadcast',
+    signOut: 'Sign out',
+    changePassword: 'Change password',
+    manageAccounts: 'Manage accounts',
+    acctHere: 'You are signed in on this device.',
+    acctPin: 'This is the team PIN login. Sign out to sign in with your own account.',
+    acctPinSub: 'Signed in with the team PIN ({r})',
+    askedOne: '{n} asked for a new password.',
+    askedMany: '{n} people asked for a new password.',
+    cpTitle: 'Change your password',
+    cpFirstTitle: 'Set your own password',
+    cpSub: 'You will stay signed in on this device.',
+    cpFirstSub: 'You signed in with a password you were given. Choose one of your own.',
+    cpCurrent: 'Current password',
+    cpFirstCurrent: 'The password you were given',
+    cpGo: 'Change it',
+    cpNeedCur: 'Type your current password.',
+    cpNeedNew: 'Choose a new password.',
+    cpShort: 'That is under 8 characters.',
+    cpMismatch: 'Those two do not match.',
+    cpSame: 'That is the password you already have.',
+    cpDone: 'Password changed',
+    cancel: 'Cancel',
+    done: 'Done',
+    close: 'Close',
+  };
+  const fill = (s, v) => String(s).replace(/\{(\w+)\}/g, (m, k) => (v && v[k] != null ? String(v[k]) : m));
+
+  /* ── tiny DOM helpers ─────────────────────────────────────────────────── */
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function field(label, input) {
+    const l = el('label', 'tkr-field');
+    l.appendChild(el('span', null, label));
+    l.appendChild(input);
+    return l;
+  }
+  function input(type, id, auto, extra) {
+    const i = el('input');
+    i.type = type; if (id) i.id = id; if (auto) i.autocomplete = auto;
+    Object.assign(i, extra || {});
+    return i;
+  }
+  async function readJson(r) { try { return await r.json(); } catch { return null; } }
+
+  /* ── toast (Signal Captain's) ─────────────────────────────────────────── */
+  let toastEl = null; let toastT = 0;
+  function toast(msg, bad) {
+    if (!toastEl) {
+      toastEl = el('div', 'tkr-toast');
+      toastEl.setAttribute('role', 'status'); toastEl.setAttribute('aria-live', 'polite');
+      document.body.appendChild(toastEl);
+    }
+    toastEl.textContent = String(msg || '');
+    toastEl.className = 'tkr-toast' + (bad ? ' tkr-bad' : '');
+    toastEl.hidden = false;
+    clearTimeout(toastT);
+    toastT = setTimeout(() => { toastEl.hidden = true; }, bad ? 4200 : 2000);
+  }
+
+  /* ── dialog (the essentials of Signal Captain's modal.js) ──────────────── */
+  /* ⚠ Dialogs STACK here (a confirm opens over the accounts list). Escape and the
+     backdrop close only the top one; focus goes back to whatever opened it. */
+  const stack = [];
+  const TABBABLE = 'button, input, select, textarea, a[href], [tabindex]';
+  const TEXTLIKE = /^(text|search|password|email|url|tel)$/i;
+  function tabbables(box) {
+    return [...box.querySelectorAll(TABBABLE)].filter((e) => !e.disabled && !e.hidden
+      && e.getAttribute('tabindex') !== '-1' && e.offsetParent !== null);
+  }
+  function onKey(e) {
+    const top = stack[stack.length - 1];
+    if (!top) return;
+    if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); top.close(); return; }
+    if (e.key !== 'Tab') return;
+    const list = tabbables(top.box);
+    if (!list.length) return;
+    const first = list[0]; const last = list[list.length - 1]; const at = document.activeElement;
+    if (!top.box.contains(at)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return; }
+    if (e.shiftKey && at === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && at === last) { e.preventDefault(); first.focus(); }
+  }
+  function coarse() { try { return matchMedia('(pointer: coarse)').matches; } catch { return false; } }
+
+  /**
+   * dialog({ title, sub, body: el | fn(bodyEl), actions: [{label, primary, danger, onClick}], wide })
+   * onClick may return false (or a promise of false) to keep the dialog open.
+   */
+  function dialog(o) {
+    const opts = o || {};
+    const back = el('div', 'tkr-back');
+    const box = el('div', 'tkr-dlg' + (opts.wide ? ' tkr-wide' : ''));
+    box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true');
+    const head = el('div', 'tkr-dlg-head');
+    const h = el('h3', null, opts.title || '');
+    h.id = 'tkr-h-' + Math.random().toString(36).slice(2, 8);
+    box.setAttribute('aria-labelledby', h.id);
+    const x = el('button', 'tkr-x', '×'); x.type = 'button'; x.setAttribute('aria-label', STRINGS.close);
+    head.append(h, x); box.appendChild(head);
+    if (opts.sub) box.appendChild(el('p', 'tkr-dlg-sub', opts.sub));
+    const body = el('div', 'tkr-dlg-body');
+    if (typeof opts.body === 'function') opts.body(body); else if (opts.body) body.appendChild(opts.body);
+    box.appendChild(body);
+    const foot = el('div', 'tkr-dlg-foot');
+    const restore = document.activeElement;
+    const me = { box, back, closed: false };
+    me.close = () => {
+      if (me.closed) return;
+      me.closed = true;
+      back.remove();
+      const i = stack.indexOf(me); if (i >= 0) stack.splice(i, 1);
+      if (!stack.length) document.removeEventListener('keydown', onKey, true);
+      if (restore && restore.focus && document.contains(restore)) { try { restore.focus(); } catch { /* gone */ } }
+      if (opts.onClose) opts.onClose();
+    };
+    const btns = [];
+    (opts.actions || [{ label: STRINGS.done, primary: true }]).forEach((a) => {
+      const b = el('button', 'tkr-btn' + (a.primary ? ' tkr-primary' : '') + (a.danger ? ' tkr-danger' : ''), a.label);
+      b.type = 'button';
+      b.addEventListener('click', async () => {
+        if (b.disabled) return;
+        btns.forEach((y) => { y.disabled = true; });
+        let keep = false;
+        try { keep = a.onClick ? (await a.onClick(me)) === false : false; }
+        finally { btns.forEach((y) => { y.disabled = false; }); }
+        if (!keep) me.close();
+      });
+      btns.push(b); foot.appendChild(b);
+    });
+    if (btns.length) box.appendChild(foot);
+    x.addEventListener('click', () => me.close());
+    back.addEventListener('mousedown', (e) => { if (e.target === back) me.downOnBack = true; });
+    back.addEventListener('click', (e) => { if (e.target === back && me.downOnBack) me.close(); me.downOnBack = false; });
+    back.appendChild(box);
+    document.body.appendChild(back);
+    if (!stack.length) document.addEventListener('keydown', onKey, true);
+    stack.push(me);
+    /* focus: the caller's own choice, else the first text field on screen, else the × — never a footer
+       button (Enter would press it), and on a touch screen the × (a focused field raises the keyboard) */
+    setTimeout(() => {
+      if (box.contains(document.activeElement)) return;
+      const f = coarse() ? null : [...body.querySelectorAll('input, textarea')]
+        .find((e) => e.offsetParent !== null && !e.disabled && !e.readOnly && (e.tagName === 'TEXTAREA' || TEXTLIKE.test(e.type || 'text')));
+      (f || x).focus();
+    }, 30);
+    return me;
+  }
+  /** A confirm that is a real dialog, never window.confirm (a phone may have muted native dialogs). */
+  function confirmBox(title, text, yes, danger) {
+    return new Promise((resolve) => {
+      let answered = false;
+      dialog({
+        title, body: (b) => { String(text).split('\n\n').forEach((t) => b.appendChild(el('p', null, t))); },
+        actions: [
+          { label: STRINGS.cancel },
+          { label: yes, primary: !danger, danger: !!danger, onClick: () => { answered = true; resolve(true); } },
+        ],
+        onClose: () => { if (!answered) resolve(false); },
+      });
+    });
+  }
+
+  /**
+   * A small form in a real dialog — never window.prompt (a phone that has muted dialogs returns null at once,
+   * silently: Signal Captain's Virginia bug). Resolves to { name: value, … } or null when cancelled.
+   * form({ title, sub, go: 'Save', fields: [{ name, label, value, placeholder, options: [[value, text]], hint }] })
+   */
+  function form(o) {
+    return new Promise((resolve) => {
+      let done = false; const inputs = {};
+      dialog({
+        title: o.title, sub: o.sub,
+        body: (b) => {
+          const f = el('form', 'tkr-pw-form'); f.addEventListener('submit', (e) => e.preventDefault());
+          (o.fields || []).forEach((d) => {
+            const w = el('label', 'tkr-pw-field'); w.appendChild(el('span', null, d.label));
+            let i;
+            if (d.options) {
+              i = el('select');
+              d.options.forEach(([v, t]) => { const op = el('option', null, t); op.value = v; i.appendChild(op); });
+              if (d.value != null) i.value = d.value;
+            } else {
+              i = input('text', null, 'off', { value: d.value == null ? '' : d.value, placeholder: d.placeholder || '', spellcheck: false });
+            }
+            inputs[d.name] = i; w.appendChild(i);
+            if (d.hint) w.appendChild(el('span', 'tkr-pw-hint', d.hint));
+            f.appendChild(w);
+          });
+          b.appendChild(f);
+        },
+        actions: [{ label: STRINGS.cancel },
+          { label: o.go || 'Save', primary: true, onClick: () => {
+            done = true;
+            const out = {}; Object.keys(inputs).forEach((k) => { out[k] = inputs[k].value; });
+            resolve(out);
+          } }],
+        onClose: () => { if (!done) resolve(null); },
+      });
+    });
+  }
+
+  /* ── the sign-in page ─────────────────────────────────────────────────── */
+  /**
+   * signin({ product, sub, mark, pin, forgot, setup, note, storageBlocked,
+   *          login(body) → Response, askForPassword(username) → Response,
+   *          createFirst({name, username, password}) → Response, onSignedIn(json) })
+   * Returns { show(note), hide(), node }.
+   * ⚠ login() and friends return the fetch Response itself; this page reads the
+   *   status and the JSON, so every product is judged by the same rules.
+   */
+  function signin(cfg) {
+    const c = Object.assign({ pin: false, forgot: true, setup: null }, cfg);
+    const P = { p: c.product };
+    const page = el('div', 'tkr-signin'); page.id = 'tkr-signin';
+    const form = el('form', 'tkr-card'); form.noValidate = true; form.id = 'tkr-signin-form';
+    const mark = el('img', 'tkr-card-mark'); mark.src = c.mark; mark.alt = '';
+    const title = el('h1', 'tkr-card-title', c.title || c.product);
+    const sub = el('p', 'tkr-card-sub', c.sub || '');
+    form.append(mark, title, sub);
+
+    /* account */
+    const acct = el('div', 'tkr-mode'); acct.dataset.mode = 'account';
+    const u = input('text', 'tkr-username', 'username', { autocapitalize: 'none', spellcheck: false });
+    const pw = input('password', 'tkr-password', 'current-password');
+    acct.append(field(STRINGS.username, u), field(STRINGS.password, pw));
+    /* team PIN */
+    const pinBox = el('div', 'tkr-mode'); pinBox.dataset.mode = 'pin'; pinBox.hidden = true;
+    const who = input('text', 'tkr-who', 'off', { placeholder: STRINGS.pinWhoHint });
+    const pinIn = input('password', 'tkr-pin', 'current-password', { inputMode: 'numeric', className: 'tkr-pin' });
+    pinBox.append(field(STRINGS.pinWho, who), field(STRINGS.pin, pinIn));
+    /* forgot */
+    const fg = el('div', 'tkr-mode'); fg.dataset.mode = 'forgot'; fg.hidden = true;
+    const fgText = el('p', 'tkr-card-text', STRINGS.forgotText);
+    const fgU = input('text', 'tkr-forgot-username', 'username', { autocapitalize: 'none', spellcheck: false });
+    const fgField = field(STRINGS.username, fgU);
+    const fgOk = el('p', 'tkr-ok'); fgOk.setAttribute('role', 'status'); fgOk.hidden = true;
+    fg.append(fgText, fgField, fgOk);
+    /* first run */
+    const st = el('div', 'tkr-mode'); st.dataset.mode = 'setup'; st.hidden = true;
+    const stText = el('p', 'tkr-card-text', STRINGS.setupText);
+    const stName = input('text', 'tkr-setup-name', 'name');
+    const stU = input('text', 'tkr-setup-username', 'username', { autocapitalize: 'none', spellcheck: false });
+    const stP = input('password', 'tkr-setup-password', 'new-password');
+    const stP2 = input('password', 'tkr-setup-again', 'new-password');
+    const stHint = el('p', 'tkr-note', STRINGS.atLeast8);
+    st.append(stText, field(STRINGS.setupName, stName), field(STRINGS.username, stU), field(STRINGS.setupPassword, stP),
+      field(STRINGS.setupAgain, stP2), stHint);
+
+    const note = el('p', 'tkr-note'); note.setAttribute('role', 'status'); note.hidden = true;
+    const go = el('button', 'tkr-btn tkr-primary tkr-wide', STRINGS.signIn); go.type = 'submit'; go.id = 'tkr-go';
+    const err = el('p', 'tkr-err'); err.setAttribute('role', 'alert'); err.hidden = true;
+    const links = el('div', 'tkr-links');
+    const lForgot = el('button', 'tkr-link', STRINGS.forgotLink); lForgot.type = 'button';
+    const lPin = el('button', 'tkr-link', STRINGS.pinLink); lPin.type = 'button';
+    const lBack = el('button', 'tkr-link', STRINGS.forgotBack); lBack.type = 'button';
+    links.append(lForgot, lPin, lBack);
+    const store = el('p', 'tkr-note'); store.hidden = true; store.style.margin = '12px 0 0';
+    form.append(acct, pinBox, fg, st, note, go, err, links, store);
+    const foot = el('p', 'tkr-range', STRINGS.range);
+    page.append(form, foot);
+
+    let mode = 'account';
+    const say = (m) => { err.textContent = m; err.hidden = false; };
+    function setMode(m) {
+      mode = m;
+      acct.hidden = m !== 'account'; pinBox.hidden = m !== 'pin'; fg.hidden = m !== 'forgot'; st.hidden = m !== 'setup';
+      err.hidden = true;
+      title.textContent = m === 'setup' ? fill(STRINGS.setupTitle, P) : (c.title || c.product);
+      go.textContent = m === 'forgot' ? STRINGS.forgotGo : (m === 'setup' ? STRINGS.setupGo : STRINGS.signIn);
+      go.hidden = false; fgField.hidden = false; fgText.hidden = false; fgOk.hidden = true;
+      lForgot.hidden = !(c.forgot && (m === 'account' || m === 'pin'));
+      lPin.hidden = !(c.pin && (m === 'account' || m === 'pin'));
+      lPin.textContent = m === 'pin' ? STRINGS.accountLink : STRINGS.pinLink;
+      lBack.hidden = m !== 'forgot';
+      links.hidden = lForgot.hidden && lPin.hidden && lBack.hidden;
+      setTimeout(() => {
+        const f = { account: u.value ? pw : u, pin: who.value ? pinIn : who, forgot: fgU, setup: stName }[m];
+        if (f && !coarse()) f.focus();
+      }, 30);
+    }
+    lForgot.addEventListener('click', () => { fgU.value = u.value.trim(); setMode('forgot'); });
+    lPin.addEventListener('click', () => setMode(mode === 'pin' ? 'account' : 'pin'));
+    lBack.addEventListener('click', () => setMode('account'));
+
+    function setupElsewhere() {
+      st.hidden = false; acct.hidden = true; pinBox.hidden = true; fg.hidden = true;
+      [...st.children].forEach((x) => { x.hidden = x !== stText; });
+      stText.textContent = fill(STRINGS.setupElsewhere, { p: c.product, here: (c.setup && c.setup.here) || 'localhost' });
+      go.hidden = true; links.hidden = true;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (go.disabled) return;                 // one request on the wire (SC B16)
+      err.hidden = true;
+      if (mode === 'forgot') return forgotSubmit();
+      if (mode === 'setup') return setupSubmit();
+      const body = mode === 'pin'
+        ? { pin: pinIn.value, who: who.value.trim() }
+        : { username: u.value.trim(), password: pw.value };
+      go.disabled = true;
+      let r = null; let j = null;
+      try { r = await c.login(body); j = await readJson(r); }
+      catch { say(fill(STRINGS.cantReach, P)); return; }
+      finally { go.disabled = false; }
+      if (!r.ok) {
+        if (r.status === 429) { say((j && j.message) || STRINGS.tooMany); return; }
+        if (r.status === 409 && mode === 'pin') { say((j && j.message) || STRINGS.nameTaken); who.focus(); return; }
+        if (r.status === 403 && j && j.error === 'expired') {
+          const on = j.expiresAt ? new Date(j.expiresAt) : null;
+          say(fill(STRINGS.expired, { on: on && !isNaN(on) ? ' on ' + on.toLocaleString() : '' }));
+          return;
+        }
+        if ((r.status === 403 || r.status === 401) && j && (j.error === 'bad_login' || j.error === 'bad_pin')) {
+          say(mode === 'pin' ? STRINGS.badPin : STRINGS.badLogin);
+          pw.value = ''; pinIn.value = '';
+          (mode === 'pin' ? pinIn : pw).focus();
+          return;
+        }
+        say(fill(STRINGS.noAnswer, P));
+        return;
+      }
+      if (!j || !(j.token || j.ok)) { say(fill(STRINGS.noAnswer, P)); return; }
+      pw.value = ''; pinIn.value = '';
+      c.onSignedIn(j, body);
+    });
+
+    async function forgotSubmit() {
+      const name = fgU.value.trim();
+      if (!name) { say(STRINGS.forgotNeedName); fgU.focus(); return; }
+      go.disabled = true;
+      let r = null; let j = null;
+      try { r = await c.askForPassword(name); j = await readJson(r); }
+      catch { say(fill(STRINGS.cantReach, P)); return; }
+      finally { go.disabled = false; }
+      if (r.status === 429) { say((j && j.message) || STRINGS.tooMany); return; }
+      if (!r.ok) { say((j && j.message) || fill(STRINGS.noAnswer, P)); return; }
+      fgOk.textContent = fill(STRINGS.forgotDone, { u: name });
+      fgOk.hidden = false; fgField.hidden = true; fgText.hidden = true; go.hidden = true;
+      lBack.focus();
+    }
+
+    async function setupSubmit() {
+      if (!stU.value.trim()) { say(STRINGS.needUsername); stU.focus(); return; }
+      if (stP.value.length < 8) { say(STRINGS.cpShort); stP.focus(); return; }
+      if (stP.value !== stP2.value) { say(STRINGS.cpMismatch); stP2.focus(); return; }
+      go.disabled = true;
+      let r = null; let j = null;
+      try { r = await c.createFirst({ name: stName.value.trim(), username: stU.value.trim(), password: stP.value }); j = await readJson(r); }
+      catch { say(fill(STRINGS.cantReach, P)); return; }
+      finally { go.disabled = false; }
+      if (!r.ok || !j || !j.token) {
+        if (r.status === 403 && j && j.error === 'not_here') { setupElsewhere(); return; }
+        say((j && (j.message || j.error)) || fill(STRINGS.noAnswer, P));
+        return;
+      }
+      stP.value = ''; stP2.value = '';
+      c.onSignedIn(j, { username: stU.value.trim() });
+    }
+
+    function show(why, opts) {
+      const o = opts || {};
+      if (o.pin != null) c.pin = !!o.pin;
+      if (o.setup !== undefined) c.setup = o.setup;
+      note.textContent = why || ''; note.hidden = !why;
+      store.textContent = c.storageBlocked ? fill(STRINGS.storage, { host: location.hostname }) : '';
+      store.hidden = !c.storageBlocked;
+      go.disabled = false;
+      if (!page.isConnected) document.body.appendChild(page);
+      page.hidden = false;
+      if (c.setup) { if (c.setup.canHere === false) setupElsewhere(); else setMode('setup'); }
+      else setMode('account');
+    }
+    function hide() { page.hidden = true; }
+    return { show, hide, node: page, setMode };
+  }
+
+  /* ── the header badges: [Name · Role] [Sign out] ─────────────────────── */
+  function badges(container, o) {
+    container.textContent = '';
+    const wrap = el('span', 'tkr-acct');
+    const first = String(o.name || '').trim().split(/\s+/)[0] || o.name || '';
+    const b = el('button', 'tkr-badge' + (o.admin ? ' tkr-admin' : ''));
+    b.type = 'button';
+    if (o.pending) {
+      const d = el('span', 'tkr-dot');
+      d.title = o.pending === 1 ? 'Someone asked for a new password' : fill(STRINGS.askedMany, { n: o.pending });
+      b.appendChild(d);
+    }
+    b.appendChild(document.createTextNode(first + (o.roleName ? ' · ' + o.roleName : '')));
+    b.title = o.shared ? fill(STRINGS.acctPinSub, { r: o.roleName || '' }) : 'Signed in as ' + (o.username || o.name || '');
+    b.addEventListener('click', () => o.onAccount && o.onAccount());
+    const s = el('button', 'tkr-badge', STRINGS.signOut); s.type = 'button';
+    s.addEventListener('click', () => o.onSignOut && o.onSignOut());
+    wrap.append(b, s);
+    container.appendChild(wrap);
+    return wrap;
+  }
+
+  /* ── the account dialog ──────────────────────────────────────────────── */
+  /**
+   * account({ name, roleName, shared, admin, pending: [{name}], onChangePassword, onManage, onSignOut })
+   */
+  function account(o) {
+    const actions = [];
+    if (o.admin && o.onManage) actions.push({ label: STRINGS.manageAccounts, onClick: () => { o.onManage(); } });
+    if (!o.shared && o.onChangePassword) actions.push({ label: STRINGS.changePassword, onClick: () => { setTimeout(() => o.onChangePassword(false), 0); } });
+    actions.push({ label: STRINGS.signOut, primary: !!o.shared, onClick: () => { o.onSignOut(); } });
+    return dialog({
+      title: o.name || 'Account',
+      sub: o.shared ? fill(STRINGS.acctPinSub, { r: o.roleName || '' }) : (o.roleName || ''),
+      body: (b) => {
+        b.appendChild(el('p', 'tkr-meta', o.shared ? STRINGS.acctPin : STRINGS.acctHere));
+        const p = (o.pending || []).filter(Boolean);
+        if (o.admin && p.length) {
+          b.appendChild(el('div', 'tkr-dlg-note tkr-warn', p.length === 1
+            ? fill(STRINGS.askedOne, { n: p[0].name || p[0].username })
+            : fill(STRINGS.askedMany, { n: p.length })));
+        }
+        /* the other products of the suite, where this one knows them (Scout and Quartermaster) */
+        if (o.links && o.links.length) {
+          b.appendChild(el('p', 'tkr-meta', 'Also in Teunkey Broadcast:'));
+          const ul = el('ul'); ul.style.margin = '4px 0 0 18px'; ul.style.padding = '0';
+          o.links.forEach((l) => {
+            const li = el('li'); const a = el('a', null, l.label); a.href = l.href; a.target = '_blank'; a.rel = 'noopener';
+            a.style.color = 'var(--tkr-accent-soft)'; li.appendChild(a);
+            if (l.note) li.appendChild(el('span', 'tkr-meta', ' — ' + l.note));
+            ul.appendChild(li);
+          });
+          b.appendChild(ul);
+        }
+      },
+      actions,
+    });
+  }
+
+  /* ── change your own password ────────────────────────────────────────── */
+  /* ⚠ One real form with real password inputs (a password manager can fill and save it) and no path that
+     fails quietly — Signal Captain's, after four chained prompt()s did nothing on Virginia's phone. */
+  function changePassword(o) {
+    const first = !!o.first;
+    let cur; let next; let again; let errEl;
+    return dialog({
+      title: first ? STRINGS.cpFirstTitle : STRINGS.cpTitle,
+      sub: first ? STRINGS.cpFirstSub : STRINGS.cpSub,
+      body: (body) => {
+        const form = el('form', 'tkr-pw-form'); form.autocomplete = 'on';
+        const f = (label, id, auto) => {
+          const w = el('label', 'tkr-pw-field'); w.appendChild(el('span', null, label));
+          const i = input('password', id, auto); i.required = true; w.appendChild(i); form.appendChild(w); return i;
+        };
+        if (o.username) { const hiddenU = input('text', null, 'username', { value: o.username, hidden: true, tabIndex: -1 }); form.appendChild(hiddenU); }
+        cur = f(first ? STRINGS.cpFirstCurrent : STRINGS.cpCurrent, 'tkr-pw-cur', 'current-password');
+        next = f(STRINGS.newPassword, 'tkr-pw-new', 'new-password');
+        again = f(STRINGS.newAgain, 'tkr-pw-again', 'new-password');
+        form.appendChild(el('p', 'tkr-pw-hint', STRINGS.atLeast8));
+        errEl = el('p', 'tkr-pw-err'); errEl.hidden = true; form.appendChild(errEl);
+        form.addEventListener('submit', (e) => e.preventDefault());
+        body.appendChild(form);
+        setTimeout(() => { if (!coarse()) cur.focus(); }, 30);
+      },
+      actions: [
+        { label: STRINGS.cancel },
+        { label: STRINGS.cpGo, primary: true, onClick: async () => {
+          const fail = (m, f) => { errEl.textContent = m; errEl.hidden = false; if (f) { f.focus(); f.select(); } return false; };
+          if (!cur.value) return fail(STRINGS.cpNeedCur, cur);
+          if (!next.value) return fail(STRINGS.cpNeedNew, next);
+          if (next.value.length < 8) return fail(STRINGS.cpShort, next);
+          if (next.value !== again.value) return fail(STRINGS.cpMismatch, again);
+          if (next.value === cur.value) return fail(STRINGS.cpSame, next);
+          try { await o.submit({ current: cur.value, next: next.value }); }
+          catch (e) { return fail((e && e.message) || 'That did not work.', cur); }
+          toast(STRINGS.cpDone);
+          if (o.done) o.done();
+          return true;
+        } },
+      ],
+    });
+  }
+
+  /* ── a new password, shown once, with the message to send ────────────── */
+  function loginMessage(o) {
+    const firstName = String(o.name || o.username || '').trim().split(/\s+/)[0] || 'there';
+    return 'Hi ' + firstName + ',\n\n'
+      + 'Here is your login for ' + o.product + (o.roleName ? ' (' + o.roleName.toLowerCase() + ')' : '') + ':\n\n'
+      + (o.url || location.origin + '/') + '\n'
+      + 'Username: ' + o.username + '\n'
+      + 'Password: ' + o.password + '\n\n'
+      + 'You will be asked to choose your own password when you sign in.\n\n'
+      + 'Thanks,';
+  }
+  async function copyText(t) {
+    try { await navigator.clipboard.writeText(t); return true; } catch { /* fall back */ }
+    try {
+      const ta = el('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return ok;
+    } catch { return false; }
+  }
+  function passwordResult(o) {
+    const msg = loginMessage(o);
+    return dialog({
+      title: (o.isNew ? 'Account created — ' : 'New password for ') + (o.name || o.username),
+      sub: 'Shown once. It is stored hashed, so it cannot be read back — only reset again.',
+      body: (b) => {
+        const line = el('p', 'tkr-meta');
+        line.append('Username ', el('b', null, o.username), ' · password:');
+        b.appendChild(line);
+        b.appendChild(el('div', 'tkr-pw-out', o.password));
+        b.appendChild(el('p', 'tkr-meta', 'A message you can send them:'));
+        const ta = el('textarea', 'tkr-msg'); ta.value = msg; ta.readOnly = true; b.appendChild(ta);
+        b.appendChild(el('div', 'tkr-dlg-note', 'They will be asked to choose their own password when they sign in.'));
+      },
+      actions: [
+        { label: 'Copy just the password', onClick: async () => { toast(await copyText(o.password) ? 'Copied' : 'Select the text and copy it by hand', false); return false; } },
+        { label: 'Copy the message', primary: true, onClick: async () => { toast(await copyText(msg) ? 'Copied' : 'Select the text and copy it by hand', false); return false; } },
+        { label: STRINGS.done },
+      ],
+    });
+  }
+
+  /* ── the accounts list, for products with no accounts page of their own ─ */
+  /* (NMOS Quartermaster, NMOS Scout. Signal Captain has Set up ▸ People and Deck Planner /users; their rows
+     carry the same lines and buttons.) */
+  const EXPIRY = [['End of today', 'today'], ['1 day', 1], ['3 days', 3], ['1 week', 7], ['1 month', 30], ['No expiry', 0]];
+  function expiryIso(v) {
+    if (v === 'today') { const d = new Date(); d.setHours(23, 59, 0, 0); return d.toISOString(); }
+    const n = Number(v); return n > 0 ? new Date(Date.now() + n * 864e5).toISOString() : null;
+  }
+  function when(iso) {
+    if (!iso) return '';
+    const d = new Date(iso); if (isNaN(d)) return '';
+    const min = Math.round((Date.now() - d) / 60e3);
+    if (min < 1) return 'just now';
+    if (min < 60) return min + ' min ago';
+    if (min < 24 * 60) return Math.round(min / 60) + ' h ago';
+    return d.toLocaleDateString();
+  }
+  function users(o) {
+    let dlg = null;
+    async function call(fn, ...a) {
+      try { return await fn(...a); } catch (e) { toast((e && e.message) || 'That did not work.', true); return null; }
+    }
+    async function render(body) {
+      body.textContent = '';
+      const j = await call(o.api.list);
+      if (!j) return;
+      const roles = j.roles || o.roles || {};
+      const add = el('div'); add.style.display = 'flex'; add.style.gap = '8px'; add.style.margin = '0 0 12px';
+      const bAdd = el('button', 'tkr-btn tkr-primary tkr-sm', '+ Add someone'); bAdd.type = 'button';
+      bAdd.addEventListener('click', () => addPerson(roles, body));
+      add.appendChild(bAdd); body.appendChild(add);
+      const list = el('div', 'tkr-people');
+      (j.users || []).forEach((p) => list.appendChild(row(p, roles, body)));
+      if (!(j.users || []).length) list.appendChild(el('p', 'tkr-meta', 'Nobody has an account yet.'));
+      body.appendChild(list);
+    }
+    function row(p, roles, body) {
+      const mine = o.me && o.me.uid === p.id;
+      const r = el('div', 'tkr-person' + (p.resetAsked ? ' tkr-asked' : '') + (p.expired ? ' tkr-lapsed' : ''));
+      const who = el('div');
+      const nm = el('div', 'tkr-who', p.name || p.username);
+      if (mine) nm.appendChild(el('span', 'tkr-tag', 'you'));
+      who.appendChild(nm);
+      const bits = [p.username, p.ownPassword ? 'own password' : 'still on the one you sent',
+        p.lastLogin ? 'last in ' + when(p.lastLogin) : 'never signed in'];
+      if (p.expiresAt) bits.push((p.expired ? 'expired ' : 'expires ') + new Date(p.expiresAt).toLocaleString());
+      who.appendChild(el('div', 'tkr-meta', bits.join(' · ')));
+      if (p.resetAsked) who.appendChild(el('div', 'tkr-asked-line', 'Asked for a new password ' + when(p.resetAsked)));
+      r.appendChild(who);
+      const acts = el('div', 'tkr-acts');
+      const sel = el('select', 'tkr-role'); sel.setAttribute('aria-label', 'What ' + (p.name || p.username) + ' can do');
+      Object.keys(roles).forEach((k) => { const op = el('option', null, roles[k].name || k); op.value = k; sel.appendChild(op); });
+      sel.value = p.role; sel.disabled = !!mine; if (mine) sel.title = 'You cannot change your own role';
+      sel.addEventListener('change', async () => {
+        const ok = await call(o.api.role, p.id, sel.value);
+        if (ok) { toast((p.name || p.username) + ' is now ' + ((roles[sel.value] || {}).name || sel.value)); render(body); } else sel.value = p.role;
+      });
+      const bReset = el('button', 'tkr-btn tkr-sm' + (p.resetAsked ? ' tkr-primary' : ''), 'Reset password'); bReset.type = 'button';
+      bReset.addEventListener('click', async () => {
+        let res = null;
+        try { res = await o.api.reset(p.id, false); }
+        catch (e) {
+          if (e && e.status === 409) {
+            const yes = await confirmBox('Reset ' + (p.name || p.username) + '’s password?', (e.message || '') + '\n\nReset it anyway?', 'Reset it', true);
+            if (!yes) return;
+            res = await call(o.api.reset, p.id, true);
+          } else { toast((e && e.message) || 'That did not work.', true); return; }
+        }
+        if (!res) return;
+        passwordResult({ product: o.product, url: o.url, name: p.name, username: p.username, password: res.password,
+          roleName: (roles[p.role] || {}).name });
+        render(body);
+      });
+      acts.append(sel, bReset);
+      const bExp = el('button', 'tkr-btn tkr-sm', p.expired ? 'Give access back' : (p.expiresAt ? 'Change expiry' : 'Add an expiry'));
+      bExp.type = 'button';
+      bExp.addEventListener('click', () => expiry(p, body));
+      acts.appendChild(bExp);
+      if (!mine) {
+        const bDel = el('button', 'tkr-btn tkr-sm tkr-danger', 'Remove'); bDel.type = 'button';
+        bDel.addEventListener('click', async () => {
+          const yes = await confirmBox('Remove ' + (p.name || p.username) + '?', 'They can no longer sign in to ' + o.product + '.', 'Remove', true);
+          if (!yes) return;
+          if (await call(o.api.remove, p.id)) { toast((p.name || p.username) + ' removed'); render(body); }
+        });
+        acts.appendChild(bDel);
+      }
+      r.appendChild(acts);
+      return r;
+    }
+    function expiry(p, body) {
+      let sel;
+      dialog({
+        title: 'Access for ' + (p.name || p.username),
+        body: (b) => {
+          const w = el('label', 'tkr-pw-field'); w.appendChild(el('span', null, 'From now, lasts'));
+          sel = el('select'); EXPIRY.forEach(([t, v]) => { const op = el('option', null, t); op.value = String(v); sel.appendChild(op); });
+          sel.value = p.expiresAt ? '7' : '0'; w.appendChild(sel); b.appendChild(w);
+          b.appendChild(el('div', 'tkr-dlg-note', 'Extending keeps the same account — nothing they made is lost.'));
+        },
+        actions: [{ label: STRINGS.cancel }, { label: 'Save', primary: true, onClick: async () => {
+          if (!(await call(o.api.expiry, p.id, expiryIso(sel.value)))) return false;
+          render(body); return true;
+        } }],
+      });
+    }
+    function addPerson(roles, body) {
+      let nm; let un; let rl; let ex; let errEl;
+      dialog({
+        title: 'Add someone',
+        sub: 'They get a generated password, shown once.',
+        body: (b) => {
+          const form = el('form', 'tkr-pw-form'); form.addEventListener('submit', (e) => e.preventDefault());
+          const f = (label, node) => { const w = el('label', 'tkr-pw-field'); w.append(el('span', null, label), node); form.appendChild(w); return node; };
+          nm = f('Name', input('text', null, 'off', { placeholder: 'Their name' }));
+          un = f('Username', input('text', null, 'off', { placeholder: 'Username (letters and numbers)', autocapitalize: 'none', spellcheck: false }));
+          nm.addEventListener('input', () => {
+            if (un.dataset.touched) return;
+            un.value = nm.value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.|\.$/g, '').slice(0, 40);
+          });
+          un.addEventListener('input', () => { un.dataset.touched = '1'; });
+          rl = el('select'); Object.keys(roles).forEach((k) => { const op = el('option', null, (roles[k].name || k) + ' — ' + String(roles[k].desc || '').split('.')[0]); op.value = k; rl.appendChild(op); });
+          rl.value = roles.operator ? 'operator' : Object.keys(roles)[0];
+          f('Can do', rl);
+          ex = el('select'); EXPIRY.forEach(([t, v]) => { const op = el('option', null, t); op.value = String(v); ex.appendChild(op); });
+          ex.value = '0'; f('Access lasts', ex);
+          errEl = el('p', 'tkr-pw-err'); errEl.hidden = true; form.appendChild(errEl);
+          b.appendChild(form);
+        },
+        actions: [{ label: STRINGS.cancel }, { label: 'Create', primary: true, onClick: async () => {
+          if (!un.value.trim()) { errEl.textContent = 'Choose a username.'; errEl.hidden = false; un.focus(); return false; }
+          let res;
+          try { res = await o.api.add({ name: nm.value.trim(), username: un.value.trim(), role: rl.value, expiresAt: expiryIso(ex.value) }); }
+          catch (e) { errEl.textContent = (e && e.message) || 'That did not work.'; errEl.hidden = false; return false; }
+          passwordResult({ product: o.product, url: o.url, name: res.user.name, username: res.user.username, password: res.password,
+            roleName: (roles[res.user.role] || {}).name, isNew: true });
+          render(body);
+          return true;
+        } }],
+      });
+    }
+    dlg = dialog({
+      title: 'Accounts',
+      sub: 'Everyone who can sign in to ' + o.product + ', and what each of them can do.',
+      wide: true,
+      body: (b) => { render(b); },
+      actions: [{ label: STRINGS.done }],
+    });
+    return dlg;
+  }
+
+  /* ── the whole client for a product on shared/identity (NMOS Quartermaster, NMOS Scout) ─────────────────
+   * identityClient({ product, sub, mark, tokenKey, badges: element, links, onReady(me), onSignedOut() })
+   *   → { start(), signOut(), token(), me(), authHeaders(), wsUrl(path) }
+   * ⚠⚠ It wraps window.fetch ONCE so every same-origin /api/ call carries the session and a 401 brings the
+   *   sign-in page back with the reason — the same two rules as Signal Captain's api(). Without the wrap, the
+   *   first account to exist locked the whole UI out (nothing sent a token) — the 2026-08-27 state. */
+  function identityClient(cfg) {
+    const C = Object.assign({ links: [] }, cfg);
+    const lsGet = (k) => { try { return localStorage.getItem(k) || ''; } catch { return ''; } };
+    const lsSet = (k, v) => { try { localStorage.setItem(k, v); return localStorage.getItem(k) === v; } catch { return false; } };
+    const lsDel = (k) => { try { localStorage.removeItem(k); } catch { /* blocked */ } };
+    let token = lsGet(C.tokenKey);
+    let memOnly = false;
+    let me = null; let info = null; let started = false; let pageCtl = null; let showing = false;
+    const rawFetch = root.fetch.bind(root);
+    const authHeaders = () => (token ? { Authorization: 'Bearer ' + token } : {});
+    const sameOriginApi = (u) => {
+      try { const x = new URL(u, location.href); return x.origin === location.origin && x.pathname.startsWith('/api/'); }
+      catch { return false; }
+    };
+    const why = (err) => {
+      const e = String(err || '');
+      if (/expired/i.test(e)) return STRINGS.sessionExpired;
+      if (/no longer exists/i.test(e)) return STRINGS.sessionRemoved;
+      return STRINGS.sessionEnded;
+    };
+    root.fetch = async function (input, init) {
+      const url = typeof input === 'string' ? input : (input && input.url) || '';
+      if (!sameOriginApi(url)) return rawFetch(input, init);
+      const o = Object.assign({}, init);
+      o.headers = Object.assign({}, authHeaders(), (init && init.headers) || {});
+      const r = await rawFetch(input, o);
+      if (r.status === 401 && !/\/api\/auth\//.test(url)) {
+        const j = await r.clone().json().catch(() => ({}));
+        signedOut(j && j.setup ? '' : why(j && j.error), j && j.setup);
+      }
+      return r;
+    };
+    async function call(method, url, body) {
+      const r = await root.fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body == null ? undefined : JSON.stringify(body) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { const e = new Error(j.message || j.error || ('HTTP ' + r.status)); e.status = r.status; e.body = j; throw e; }
+      return j;
+    }
+    function page() {
+      if (pageCtl) return pageCtl;
+      /* C10 of Signal Captain's audit: a browser that blocks site data can sign in, but forgets it on reload */
+      const blocked = !lsSet('tkr-probe', '1'); lsDel('tkr-probe');
+      pageCtl = signin({
+        product: C.product, sub: C.sub, mark: C.mark, forgot: true, storageBlocked: blocked,
+        login: (b) => rawFetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }),
+        askForPassword: (u) => rawFetch('/api/auth/password-help', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u }) }),
+        createFirst: (b) => rawFetch('/api/auth/setup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }),
+        onSignedIn: (j) => {
+          token = String(j.token || '');
+          memOnly = !lsSet(C.tokenKey, token);
+          /* a page that had already started reloads (one clean start, like Signal Captain); a first sign-in
+             just carries on — unless the browser will not store the session, which a reload would lose */
+          if (started && !memOnly) { location.reload(); return; }
+          showing = false; pageCtl.hide();
+          start();
+        },
+      });
+      return pageCtl;
+    }
+    function showPage(note, inf) {
+      const i = inf || info || {};
+      showing = true;
+      page().show(note || '', { pin: !!i.pin, setup: i.setup ? { canHere: !!i.setupHere, here: location.origin } : null });
+    }
+    function signedOut(note, setup) {
+      if (showing) return;
+      token = ''; lsDel(C.tokenKey); me = null;
+      if (C.onSignedOut) { try { C.onSignedOut(); } catch { /* */ } }
+      if (setup) { start(); return; }
+      showPage(note);
+    }
+    function signOut() { token = ''; lsDel(C.tokenKey); location.reload(); }
+    function renderBadges() {
+      if (!C.badges || !me) return;
+      badges(C.badges, { name: me.name, username: me.username, roleName: me.roleName, admin: me.admin, shared: me.shared,
+        pending: me.admin ? (info.pending || []).length : 0, onAccount: accountDialog, onSignOut: signOut });
+    }
+    function usersApi() {
+      return {
+        list: () => call('GET', '/api/auth/users'),
+        add: (b) => call('POST', '/api/auth/users', b),
+        reset: (id, force) => call('POST', '/api/auth/users/' + encodeURIComponent(id) + '/password', { force: !!force }),
+        role: (id, role) => call('POST', '/api/auth/users/' + encodeURIComponent(id) + '/role', { role }),
+        expiry: (id, iso) => call('POST', '/api/auth/users/' + encodeURIComponent(id) + '/expiry', { expiresAt: iso }),
+        remove: (id) => call('DELETE', '/api/auth/users/' + encodeURIComponent(id)),
+      };
+    }
+    function manage() {
+      users({ product: C.product, url: location.origin + '/', me: { uid: me.uid }, roles: info.roles, api: usersApi() });
+    }
+    function changeMine(first) {
+      changePassword({ first, username: me.username, submit: (b) => call('POST', '/api/auth/password', b),
+        done: () => { me.mustChange = false; } });
+    }
+    function accountDialog() {
+      account({ name: me.name, roleName: me.roleName, shared: me.shared, admin: me.admin, pending: info.pending,
+        links: C.links, onChangePassword: changeMine, onManage: manage, onSignOut: signOut });
+    }
+    async function start() {
+      let r = null;
+      try { r = await rawFetch('/api/auth/me', { headers: authHeaders() }); info = await r.json(); }
+      catch { showPage(fill(STRINGS.cantReach, { p: C.product })); return; }
+      if (info && info.signedIn) {
+        me = info.me;
+        renderBadges();
+        if (!started) { started = true; if (C.onReady) C.onReady(me, info); }
+        if (me.mustChange) setTimeout(() => changeMine(true), 400);
+        return;
+      }
+      const note = token && info && info.gone ? why(info.gone) : (token ? STRINGS.sessionEnded : '');
+      token = ''; lsDel(C.tokenKey);
+      showPage(note, info);
+    }
+    return {
+      start, signOut, me: () => me, info: () => info, token: () => token, authHeaders, fetch: rawFetch, call,
+      /** a WebSocket or EventSource address carrying the session (they cannot send a header) */
+      withToken: (path) => path + (path.indexOf('?') < 0 ? '?' : '&') + 't=' + encodeURIComponent(token),
+      refresh: async () => { try { const r = await rawFetch('/api/auth/me', { headers: authHeaders() }); info = await r.json(); if (info.signedIn) { me = info.me; renderBadges(); } } catch { /* */ } },
+    };
+  }
+
+  root.TeunkeyRange = {
+    version: '1', STRINGS, fill, signin, badges, account, changePassword, passwordResult, loginMessage, users, dialog,
+    confirm: confirmBox, form, toast, copyText, identityClient,
+  };
+})(window);
+
+</script>
+<style>
+/* ── NMOS Scout, in the Teunkey Broadcast range (2026-10-01) ──────────────────
+   Richard: "make sure that these all follow the same palette, all look the same … use [Signal Captain and Deck
+   Planner] as your base". So: Signal Captain's palette, its system type at its sizes (15 px, bold controls, no
+   9–11 px mono chrome), its buttons, cards, dialogs and toasts. range/range.css carries the shared parts
+   (sign-in page, account badges, dialogs); this sheet maps Scout's own names onto the same values.
+   ⚠ Monospace stays ONLY where the text is data — an address, an id, a JSON body, an SDP — because those are
+     compared character by character. The chrome is the range's sans.
+   ⚠ No Google Fonts: Scout runs offline, and the range's type is the system's. */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:       #0a0c0f;
-  --bg1:      #0e1116;
-  --bg2:      #131820;
-  --bg3:      #1a2030;
-  --border:   #232c3d;
-  --border2:  #2d3a50;
-  --text:     #c8d4e8;
-  --text2:    #7a90b0;
-  --text3:    #4a5a70;
-  --accent:   #00c8ff;
-  --accent2:  #007fa8;
-  --ok:       #00e06c;
-  --ok-dim:   #002a1a;
-  --warn:     #f5b400;
-  --warn-dim: #2a1e00;
-  --err:      #ff3c5a;
-  --err-dim:  #2a0010;
-  --purple:   #a855f7;
-  --teal:     #14b8a6;
-  --mono:     'JetBrains Mono', monospace;
-  --sans:     'Syne', sans-serif;
-  --r:        6px;
+  --bg:       #0b0e14;   /* the page                         = Signal Captain --bg     */
+  --bg1:      #121822;   /* header, sidebar, cards           = --panel                 */
+  --bg2:      #161d29;   /* controls, inputs                 = --card                  */
+  --bg3:      #1e2635;   /* hover, the hardest surface       = --card2                 */
+  --border:   #232d3e;   /*                                  = --line                  */
+  --border2:  #2f3b52;   /* a line that wants to be seen                               */
+  --text:     #e6ebf4;   /*                                  = --fg                    */
+  --text2:    #8695ad;   /*                                  = --muted                 */
+  --text3:    #74839c;   /* tertiary, still 4.5:1 on --bg                              */
+  --accent:   #3a9ad9;   /* the range's blue — gold is for the logos only              */
+  --accent2:  #7cc4ee;   /*                                  = --accent-soft           */
+  --on-accent:#04121c;
+  --ok:       #3ddc84;
+  --ok-dim:   color-mix(in srgb, #3ddc84 14%, #0b0e14);
+  --warn:     #ffc45c;
+  --warn-dim: color-mix(in srgb, #ffc45c 14%, #0b0e14);
+  --err:      #ff5a6a;
+  --err-dim:  color-mix(in srgb, #ff5a6a 14%, #0b0e14);
+  --purple:   #b9a2ff;
+  --teal:     #4fd1c5;
+  --mono:     ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans:     ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r:        8px;
   --r2:       10px;
+  /* the range dialogs opened inside Scout follow the same values */
+  --tkr-panel: var(--bg1); --tkr-card: var(--bg2); --tkr-card2: var(--bg3); --tkr-line: var(--border);
 }
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--mono);font-size:12px}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font:15px/1.5 var(--sans);color-scheme:dark}
 
 /* ── KEYBOARD FOCUS ──────────────────────────────────────────────────────── */
-/* Visible focus ring for keyboard users (mouse clicks don't trigger it). */
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
 textarea:focus-visible, [tabindex]:focus-visible, [role="button"]:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline-offset: 2px;
 }
 
 /* ── LAYOUT ──────────────────────────────────────────────────────────────── */
 .app{display:grid;grid-template-columns:252px 1fr;grid-template-rows:auto 1fr auto;height:100vh}
 
-/* ── HEADER ──────────────────────────────────────────────────────────────── */
-/* Wraps gracefully instead of overlapping when the viewport narrows. */
+/* ── HEADER (Signal Captain's: the lockup left, the account right) ───────── */
 .header{
   grid-column:1/-1;
-  display:flex;align-items:center;gap:12px;
+  display:flex;align-items:center;gap:14px;
   flex-wrap:wrap;row-gap:8px;
-  padding:7px 18px;min-height:52px;
+  padding:9px 16px;min-height:52px;
   background:var(--bg1);
   border-bottom:1px solid var(--border);
   position:relative;z-index:20;
 }
 .logo{display:flex;align-items:center;gap:9px;flex-shrink:0}
-.logo-mark{width:28px;height:28px;position:relative;flex-shrink:0}
-.logo-mark svg{width:100%;height:100%}
-.logo-text{font-family:var(--sans);font-weight:800;font-size:16px;letter-spacing:-0.02em;color:#fff}
-.logo-sub{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;margin-top:1px}
 .header-mid{flex:1 1 320px;display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap;row-gap:8px}
-.url-bar{flex:1 1 220px;min-width:200px;display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:0 10px;transition:border-color .15s}
+.url-bar{flex:1 1 240px;min-width:200px;display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:0 10px;transition:border-color .15s}
 .url-bar:focus-within{border-color:var(--accent)}
-.url-bar input{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 0}
+.url-bar input{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:13px;padding:7px 0}
 .url-bar input::placeholder{color:var(--text3)}
-.url-bar-label{font-size:9px;color:var(--text3);letter-spacing:0.1em;white-space:nowrap}
-select.ver-select{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:6px 8px;color:var(--text);font-family:var(--mono);font-size:11px;outline:none;cursor:pointer;transition:border-color .15s}
+.url-bar-label{font-size:13px;font-weight:700;color:var(--text2);white-space:nowrap}
+.url-hint{font-size:12px;font-weight:700;color:var(--accent2);white-space:nowrap;cursor:pointer;padding:2px 4px;border-radius:5px;background:none;border:0;font-family:var(--sans)}
+.url-hint:hover{color:var(--text);text-decoration:underline}
+select.ver-select{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:6px 8px;color:var(--text);font:600 13px var(--sans);outline:none;cursor:pointer}
 select.ver-select:focus{border-color:var(--accent)}
-.header-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.mock-badge{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(245,180,0,.25);border-radius:4px;padding:2px 8px;font-size:9px;letter-spacing:0.08em;font-weight:600}
+.header-right{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;margin-left:auto}
+.mock-badge{background:var(--warn);color:#1a1206;border:1px solid var(--warn);border-radius:999px;padding:2px 10px;font-size:12px;font-weight:800}
+.discover-list{position:absolute;top:54px;left:12px;z-index:60;min-width:340px;max-width:560px;max-height:320px;overflow:auto;background:var(--bg1);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.45);padding:6px;font-size:14px}
+.discover-list .dl-note{padding:10px;color:var(--text2)}
+.discover-list .dl-err{padding:10px;color:#ff8f9b;font-weight:700}
+.discover-list button{display:block;width:100%;text-align:left;background:transparent;border:0;border-radius:7px;padding:8px 10px;color:var(--text);cursor:pointer;font:inherit}
+.discover-list button:hover,.discover-list button:focus-visible{background:var(--bg3)}
+.discover-list .dl-url{color:var(--accent2);font-family:var(--mono);font-size:13px}
+.discover-list .dl-kind{color:var(--text2);font-size:12px}
 
-/* ── BUTTONS ──────────────────────────────────────────────────────────────── */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:none;border-radius:var(--r);cursor:pointer;font-family:var(--mono);font-size:11px;font-weight:500;transition:all .12s;white-space:nowrap;text-decoration:none}
+/* ── BUTTONS (Signal Captain's .btn / .btn.primary / .btn.sm) ────────────── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font:700 13px/1.3 var(--sans);white-space:nowrap;text-decoration:none;background:var(--bg2);color:var(--text)}
 .btn svg{flex-shrink:0}
-.btn-primary{background:var(--accent);color:#000}
-.btn-primary:hover{background:#22d3ee}
-.btn-primary:disabled{opacity:.45;cursor:not-allowed}
-.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
-.btn-ghost:hover{background:var(--bg2);color:var(--text);border-color:var(--border2)}
-.btn-ghost:disabled{opacity:.4;cursor:not-allowed}
+.btn:hover{filter:brightness(1.12)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;filter:none}
+.btn-ghost{background:var(--bg2);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:disabled{opacity:.5;cursor:not-allowed;filter:none}
+.btn.small{padding:4px 10px;font-size:12px}
 
-/* ── SIDEBAR ──────────────────────────────────────────────────────────────── */
+/* ── SIDEBAR (Deck Planner's left column: bold labels, plain items) ───────── */
 .sidebar{background:var(--bg1);border-right:1px solid var(--border);overflow-y:auto;overflow-x:hidden}
-.sidebar::-webkit-scrollbar{width:3px}
-.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-.sidebar-section{padding:14px 10px 8px}
-.sidebar-label{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);padding:0 6px 8px}
-.nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:var(--r);cursor:pointer;color:var(--text2);transition:all .12s;user-select:none;position:relative}
-.nav-item:hover{background:var(--bg2);color:var(--text)}
-.nav-item.active{background:rgba(0,200,255,.07);color:var(--accent)}
-.nav-item.active::before{content:'';position:absolute;left:0;top:22%;bottom:22%;width:2px;background:var(--accent);border-radius:1px}
-.nav-item svg{flex-shrink:0;opacity:.7}
-.nav-item.active svg{opacity:1}
-.nav-count{margin-left:auto;font-size:10px;background:var(--bg3);color:var(--text3);padding:1px 6px;border-radius:10px;min-width:22px;text-align:center}
-.nav-count.err{background:var(--err-dim);color:var(--err)}
-.nav-count.warn{background:var(--warn-dim);color:var(--warn)}
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.sidebar-section{padding:14px 10px 6px}
+.sidebar-label{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);padding:0 8px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--text2);font-weight:700;font-size:14px;user-select:none;position:relative}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:color-mix(in srgb, var(--accent) 16%, transparent);color:var(--text)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--accent);border-radius:2px}
+.nav-item svg{flex-shrink:0;opacity:.75}
+.nav-item.active svg{opacity:1;color:var(--accent2)}
+.nav-count{margin-left:auto;font-size:12px;font-weight:700;background:var(--bg2);border:1px solid var(--border);color:var(--text2);padding:0 7px;border-radius:999px;min-width:24px;text-align:center}
+.nav-count.err{background:var(--err-dim);border-color:color-mix(in srgb, var(--err) 40%, transparent);color:#ff8f9b}
+.nav-count.warn{background:var(--warn-dim);border-color:color-mix(in srgb, var(--warn) 40%, transparent);color:#ffd489}
 
 /* ── MAIN PANEL ──────────────────────────────────────────────────────────── */
 .main{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);min-height:0}
-.toolbar{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);background:var(--bg1);flex-shrink:0}
-.toolbar-title{font-family:var(--sans);font-size:13px;font-weight:700;color:#fff}
+.toolbar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;flex-wrap:wrap}
+.toolbar-title{font-size:16px;font-weight:800;color:var(--text)}
 .toolbar-sep{flex:1}
-.search-box{display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:5px 9px}
-.search-box input{background:none;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:11px;width:170px}
+.last-scan{color:var(--text2);font-size:13px;white-space:nowrap}
+.search-box{display:flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:5px 9px;color:var(--text2)}
+.search-box:focus-within{border-color:var(--accent)}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font:14px var(--sans);width:190px}
 .search-box input::placeholder{color:var(--text3)}
-.content{flex:1;overflow-y:auto;padding:14px 16px}
-.content::-webkit-scrollbar{width:4px}
-.content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.content{flex:1;overflow-y:auto;padding:16px}
+.content::-webkit-scrollbar{width:8px}
+.content::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 
 /* ── SCAN PROGRESS ───────────────────────────────────────────────────────── */
-.scan-bar{display:flex;align-items:center;gap:10px;padding:8px 16px;background:rgba(0,200,255,.05);border-bottom:1px solid rgba(0,200,255,.1);font-size:11px;color:var(--accent);flex-shrink:0}
+.scan-bar{display:flex;align-items:center;gap:10px;padding:8px 16px;background:color-mix(in srgb, var(--accent) 10%, var(--bg));border-bottom:1px solid color-mix(in srgb, var(--accent) 30%, transparent);font-size:14px;font-weight:700;color:var(--accent2);flex-shrink:0}
 .scan-bar.hidden{display:none}
-.spinner{width:13px;height:13px;border:2px solid rgba(0,200,255,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite;flex-shrink:0}
+.spinner{width:14px;height:14px;border:2px solid color-mix(in srgb, var(--accent) 25%, transparent);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── SERVER CONNECTION INDICATOR ─────────────────────────────────────────── */
-.conn-ind{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--text3);white-space:nowrap;cursor:default}
-.conn-ind .conn-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);transition:background .2s}
-.conn-ind.live{color:var(--text2)}
-.conn-ind.live .conn-dot{background:var(--ok);box-shadow:0 0 5px var(--ok)}
-.conn-ind.down{color:var(--err)}
+/* ── SERVER CONNECTION INDICATOR (Signal Captain's live dot) ─────────────── */
+.conn-ind{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);white-space:nowrap;cursor:default}
+.conn-ind .conn-dot{width:9px;height:9px;border-radius:50%;background:var(--text3)}
+.conn-ind.live .conn-dot{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.conn-ind.down{color:#ff8f9b}
 .conn-ind.down .conn-dot{background:var(--err)}
 
 /* ── BADGES ──────────────────────────────────────────────────────────────── */
-.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;white-space:nowrap}
-.badge.ok{background:var(--ok-dim);color:var(--ok)}
-.badge.warn{background:var(--warn-dim);color:var(--warn)}
-.badge.error{background:var(--err-dim);color:var(--err)}
-.badge.info{background:rgba(0,200,255,.1);color:var(--accent)}
-.badge.purple{background:rgba(168,85,247,.1);color:var(--purple)}
-.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.dot.ok{background:var(--ok);box-shadow:0 0 5px var(--ok)}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;border:1px solid transparent}
+.badge.ok{background:var(--ok-dim);color:#6fe3a5;border-color:color-mix(in srgb, var(--ok) 30%, transparent)}
+.badge.warn{background:var(--warn-dim);color:#ffd489;border-color:color-mix(in srgb, var(--warn) 30%, transparent)}
+.badge.error{background:var(--err-dim);color:#ff8f9b;border-color:color-mix(in srgb, var(--err) 30%, transparent)}
+.badge.info{background:color-mix(in srgb, var(--accent) 14%, var(--bg));color:var(--accent2);border-color:color-mix(in srgb, var(--accent) 30%, transparent)}
+.badge.purple{background:color-mix(in srgb, var(--purple) 12%, var(--bg));color:var(--purple)}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot.ok{background:var(--ok);box-shadow:0 0 6px var(--ok)}
 .dot.warn{background:var(--warn)}
-.dot.error{background:var(--err);box-shadow:0 0 5px var(--err)}
-.tag{display:inline-flex;padding:1px 6px;border-radius:3px;font-size:9.5px;background:var(--bg3);color:var(--text3);border:1px solid var(--border)}
-.version-pill{display:inline-flex;padding:2px 6px;border-radius:3px;font-size:10px;background:rgba(168,85,247,.1);color:var(--purple);border:1px solid rgba(168,85,247,.2);margin-right:3px}
+.dot.error{background:var(--err);box-shadow:0 0 6px var(--err)}
+.tag{display:inline-flex;padding:0 7px;border-radius:999px;font-size:12px;font-weight:600;background:var(--bg2);color:var(--text2);border:1px solid var(--border)}
+.version-pill{display:inline-flex;padding:0 7px;border-radius:999px;font-size:12px;font-weight:700;background:color-mix(in srgb, var(--purple) 12%, var(--bg));color:var(--purple);border:1px solid color-mix(in srgb, var(--purple) 30%, transparent);margin-right:4px}
 
-/* ── TABLES ──────────────────────────────────────────────────────────────── */
-.rtable{width:100%;border-collapse:collapse}
-.rtable th{text-align:left;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);padding:0 12px 8px;font-weight:500;border-bottom:1px solid var(--border)}
-.rtable td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
-.rtable tbody tr{cursor:pointer;transition:background .1s}
+/* ── TABLES (Signal Captain's: bold header on the card colour) ───────────── */
+.rtable{width:100%;border-collapse:collapse;font-size:14px}
+.rtable th{text-align:left;font-size:13px;font-weight:800;color:var(--text2);padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg1)}
+.rtable td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.rtable tbody tr{cursor:pointer}
 .rtable tbody tr:hover td{background:var(--bg1)}
-.rtable tbody tr.selected td{background:rgba(0,200,255,.06)}
+.rtable tbody tr.selected td{background:color-mix(in srgb, var(--accent) 12%, var(--bg))}
 .rtable tbody tr:last-child td{border-bottom:none}
-.cell-label{color:var(--text);font-weight:500}
-.cell-uuid{font-size:10px;color:var(--text3);margin-top:1px}
-.truncate{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cell-label{color:var(--text);font-weight:700}
+.cell-uuid{font-family:var(--mono);font-size:12px;color:var(--text3);margin-top:1px}
+.truncate{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ── OVERVIEW ────────────────────────────────────────────────────────────── */
-.overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(166px,1fr));gap:10px;margin-bottom:16px}
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:16px}
 .stat-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px}
-.stat-num{font-family:var(--sans);font-size:30px;font-weight:800;color:#fff;line-height:1}
-.stat-lbl{font-size:9.5px;color:var(--text3);margin-top:3px;letter-spacing:0.08em;text-transform:uppercase}
-.stat-health{margin-top:9px;display:flex;gap:5px;flex-wrap:wrap}
-.diag-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:10px}
-.diag-title{font-family:var(--sans);font-size:12px;font-weight:600;color:#fff;margin-bottom:10px}
+.stat-num{font-size:30px;font-weight:800;color:var(--text);line-height:1}
+.stat-lbl{font-size:13px;font-weight:700;color:var(--text2);margin-top:4px;text-transform:capitalize}
+.stat-health{margin-top:10px;display:flex;gap:5px;flex-wrap:wrap}
+.diag-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:12px}
+.diag-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:10px}
 .registry-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:14px}
-.field-grid{display:grid;grid-template-columns:130px 1fr;gap:5px 10px;font-size:11px}
-.field-key{color:var(--text3)}
+.field-grid{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;font-size:14px}
+.field-key{color:var(--text2);font-weight:700}
 .field-val{color:var(--text);word-break:break-all}
-.field-val a{color:var(--accent);text-decoration:none}
+.field-val a{color:var(--accent2);text-decoration:none;font-family:var(--mono);font-size:13px}
 .field-val a:hover{text-decoration:underline}
 
 /* ── WARNING LIST ────────────────────────────────────────────────────────── */
-.warn-list{display:flex;flex-direction:column;gap:4px}
-.warn-item{display:flex;align-items:flex-start;gap:7px;padding:6px 9px;border-radius:4px;font-size:11px;line-height:1.4}
-.warn-item.ok{background:var(--ok-dim);color:var(--ok)}
-.warn-item.warn{background:var(--warn-dim);color:var(--warn)}
-.warn-item.error{background:var(--err-dim);color:var(--err)}
-.warn-item svg{flex-shrink:0;margin-top:1px}
+.warn-list{display:flex;flex-direction:column;gap:5px}
+.warn-item{display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border-radius:8px;font-size:14px;line-height:1.45;border:1px solid transparent}
+.warn-item.ok{background:var(--ok-dim);color:#6fe3a5;border-color:color-mix(in srgb, var(--ok) 22%, transparent)}
+.warn-item.warn{background:var(--warn-dim);color:#ffd489;border-color:color-mix(in srgb, var(--warn) 22%, transparent)}
+.warn-item.error{background:var(--err-dim);color:#ff8f9b;border-color:color-mix(in srgb, var(--err) 22%, transparent)}
+.warn-item svg{flex-shrink:0;margin-top:2px}
 
 /* ── DIFF ────────────────────────────────────────────────────────────────── */
-.diff-added{color:var(--ok);font-size:11px;padding:3px 0}
-.diff-removed{color:var(--err);font-size:11px;padding:3px 0}
-.diff-changed{color:var(--warn);font-size:11px;padding:3px 0}
+.diff-added{color:#6fe3a5;font-size:14px;padding:3px 0}
+.diff-removed{color:#ff8f9b;font-size:14px;padding:3px 0}
+.diff-changed{color:#ffd489;font-size:14px;padding:3px 0}
 
 /* ── DETAIL DRAWER ───────────────────────────────────────────────────────── */
-.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;display:flex;justify-content:flex-end}
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:50;display:flex;justify-content:flex-end}
 .drawer-overlay.hidden{display:none}
-.drawer{width:540px;height:100%;background:var(--bg1);border-left:1px solid var(--border2);overflow-y:auto;display:flex;flex-direction:column;animation:slideIn .15s ease-out}
-@keyframes slideIn{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
-.drawer::-webkit-scrollbar{width:3px}
-.drawer::-webkit-scrollbar-thumb{background:var(--border)}
-.drawer-head{display:flex;align-items:center;gap:9px;padding:14px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg1);z-index:1}
-.drawer-title{font-family:var(--sans);font-size:14px;font-weight:700;color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drawer{width:560px;max-width:100vw;height:100%;background:var(--bg1);border-left:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+.drawer::-webkit-scrollbar{width:8px}
+.drawer::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.drawer-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg1);z-index:1}
+.drawer-title{font-size:16px;font-weight:800;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .drawer-section{padding:14px 18px;border-bottom:1px solid var(--border)}
-.drawer-section-label{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:9px}
+.drawer-section-label{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin-bottom:9px}
 
-/* ── JSON VIEWER ─────────────────────────────────────────────────────────── */
-.json-viewer{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:12px;font-size:10.5px;white-space:pre;overflow:auto;max-height:280px;line-height:1.65;tab-size:2}
-.json-viewer::-webkit-scrollbar{width:3px;height:3px}
+/* ── JSON VIEWER (data: monospace stays) ─────────────────────────────────── */
+.json-viewer{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:12px;font-family:var(--mono);font-size:12.5px;white-space:pre;overflow:auto;max-height:300px;line-height:1.6;tab-size:2}
+.json-viewer::-webkit-scrollbar{width:6px;height:6px}
 .json-viewer::-webkit-scrollbar-thumb{background:var(--border)}
-.jk{color:#7dd3fc}.js{color:#86efac}.jn{color:#fcd34d}.jb{color:#f472b6}.jnull{color:var(--text3)}
+.jk{color:#7cc4ee}.js{color:#6fe3a5}.jn{color:#ffd489}.jb{color:#d6a8ff}.jnull{color:var(--text3)}
 
 /* ── LOG PANEL ───────────────────────────────────────────────────────────── */
 .log-panel{grid-column:1/-1;background:var(--bg1);border-top:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.log-header{display:flex;align-items:center;gap:9px;padding:7px 16px;border-bottom:1px solid var(--border);flex-shrink:0;cursor:pointer;user-select:none}
-.log-header:hover{background:var(--bg2)}
-.log-header-title{font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3)}
-.log-entries{height:132px;overflow-y:auto;font-size:10.5px}
+.log-header{display:flex;align-items:center;gap:9px;padding:7px 16px;border-bottom:1px solid var(--border);flex-shrink:0;cursor:pointer;user-select:none;color:var(--text2)}
+.log-header:hover{background:var(--bg3)}
+.log-header-title{font-size:13px;font-weight:800;color:var(--text2)}
+.log-entries{height:136px;overflow-y:auto;font-family:var(--mono);font-size:12.5px}
+.log-empty{color:var(--text2);font:14px var(--sans);padding:16px;text-align:center}
 #logChevron{transition:transform .15s}
 .log-panel.collapsed .log-entries{display:none}
 .log-panel.collapsed #logChevron{transform:rotate(180deg)}
 .log-panel.collapsed .log-header{border-bottom:none}
-.log-entries::-webkit-scrollbar{width:3px}
+.log-entries::-webkit-scrollbar{width:6px}
 .log-entries::-webkit-scrollbar-thumb{background:var(--border)}
-.log-entry{display:grid;grid-template-columns:108px 44px 56px 58px 1fr;gap:8px;padding:4px 16px;color:var(--text2);transition:background .1s;border-bottom:1px solid rgba(35,44,61,.5)}
+.log-entry{display:grid;grid-template-columns:118px 52px 60px 64px 1fr;gap:8px;padding:4px 16px;color:var(--text2);border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent)}
 .log-entry:hover{background:var(--bg2)}
-.log-entry.is-err{color:var(--err)}
-.log-entry.is-warn .le-status{color:var(--warn)}
+.log-entry.is-err{color:#ff8f9b}
+.log-entry.is-warn .le-status{color:#ffd489}
 .le-ts{color:var(--text3)}
-.le-method{color:var(--accent);font-weight:500}
-.le-status.ok{color:var(--ok)}
-.le-status.err{color:var(--err)}
+.le-method{color:var(--accent2);font-weight:700}
+.le-status.ok{color:#6fe3a5}
+.le-status.err{color:#ff8f9b}
 .le-url{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* ── SUBSCRIPTION PANEL ──────────────────────────────────────────────────── */
-.sub-panel{max-width:660px}
-.form-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:16px;margin-bottom:10px}
-.form-card-title{font-family:var(--sans);font-size:12px;font-weight:600;color:#fff;margin-bottom:12px}
-.form-row{display:grid;grid-template-columns:140px 1fr;align-items:center;gap:10px;margin-bottom:8px}
+/* ── SUBSCRIPTION / BUILDER FORMS ────────────────────────────────────────── */
+.sub-panel{max-width:680px}
+.form-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:16px;margin-bottom:12px}
+.form-card-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:12px}
+.form-row{display:grid;grid-template-columns:150px 1fr;align-items:center;gap:10px;margin-bottom:9px}
 .form-row:last-child{margin-bottom:0}
-.form-label{color:var(--text2);font-size:11px}
-.form-input{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:7px 10px;color:var(--text);font-family:var(--mono);font-size:11px;outline:none;width:100%;transition:border-color .15s}
+.form-label{color:var(--text2);font-size:13px;font-weight:700}
+.form-input{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--text);font:14px var(--sans);outline:none;width:100%}
 .form-input:focus{border-color:var(--accent)}
 .form-input::placeholder{color:var(--text3)}
 select.form-input option{background:var(--bg2)}
-textarea.form-input{resize:vertical;min-height:80px}
-.result-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:10px}
-.result-card.ok{border-color:rgba(0,224,108,.3)}
-.result-card.err{border-color:rgba(255,60,90,.3)}
+textarea.form-input{resize:vertical;min-height:84px;font-family:var(--mono);font-size:13px}
+.result-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:12px}
+.result-card.ok{border-color:color-mix(in srgb, var(--ok) 40%, transparent)}
+.result-card.err{border-color:color-mix(in srgb, var(--err) 40%, transparent)}
 .result-header{display:flex;align-items:center;gap:9px;margin-bottom:10px}
 
 /* ── REQUEST BUILDER ─────────────────────────────────────────────────────── */
-.builder-panel{max-width:700px}
+.builder-panel{max-width:720px}
 
 /* ── ROUTE MATRIX ────────────────────────────────────────────────────────── */
 .matrix-wrap{overflow:auto;flex:1}
-.matrix-wrap::-webkit-scrollbar{width:5px;height:5px}
-.matrix-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.matrix-wrap::-webkit-scrollbar{width:8px;height:8px}
+.matrix-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 .matrix-wrap::-webkit-scrollbar-corner{background:var(--bg)}
-
 .matrix-toolbar{display:flex;align-items:center;gap:10px;padding:10px 0 12px;flex-shrink:0;flex-wrap:wrap}
-.matrix-toolbar .filter-label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
-
+.matrix-toolbar .filter-label{font-size:13px;font-weight:700;color:var(--text2)}
 .mx-table{border-collapse:separate;border-spacing:0;position:relative}
-
-/* Corner / sender header cells */
-.mx-corner{width:180px;min-width:180px;position:sticky;top:0;left:0;z-index:10;background:var(--bg1);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:8px 10px}
-.mx-corner-inner{display:flex;align-items:flex-end;justify-content:flex-end;height:100%;padding-bottom:4px;gap:6px;font-size:9px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
-
-/* Sender header row (top sticky) */
-.mx-sender-th{
-  position:sticky;top:0;z-index:8;
-  background:var(--bg1);
-  border-bottom:1px solid var(--border2);
-  border-right:1px solid var(--border);
-  padding:0;
-  min-width:52px;max-width:52px;width:52px;
-  vertical-align:bottom;
-  text-align:center;
-}
-.mx-sender-th-inner{
-  display:flex;flex-direction:column;align-items:center;
-  padding:6px 4px 8px;
-  gap:4px;
-  cursor:default;
-}
-.mx-sender-label{
-  writing-mode:vertical-rl;
-  transform:rotate(180deg);
-  font-size:10px;color:var(--text2);
-  max-height:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  line-height:1.2;
-}
-.mx-sender-label.active{color:var(--accent)}
-
-/* Receiver row header (left sticky) */
-.mx-rcv-th{
-  position:sticky;left:0;z-index:7;
-  background:var(--bg1);
-  border-right:1px solid var(--border2);
-  border-bottom:1px solid var(--border);
-  padding:6px 10px 6px 12px;
-  min-width:180px;max-width:180px;width:180px;
-  vertical-align:middle;
-}
-.mx-rcv-label{font-size:10.5px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.mx-corner{width:190px;min-width:190px;position:sticky;top:0;left:0;z-index:10;background:var(--bg1);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:8px 10px}
+.mx-corner-inner{display:flex;align-items:flex-end;justify-content:flex-end;height:100%;padding-bottom:4px;gap:6px;font-size:12px;font-weight:700;color:var(--text2)}
+.mx-sender-th{position:sticky;top:0;z-index:8;background:var(--bg1);border-bottom:1px solid var(--border2);border-right:1px solid var(--border);padding:0;min-width:54px;max-width:54px;width:54px;vertical-align:bottom;text-align:center}
+.mx-sender-th-inner{display:flex;flex-direction:column;align-items:center;padding:6px 4px 8px;gap:4px;cursor:default}
+.mx-sender-label{writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;font-weight:600;color:var(--text2);max-height:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.2}
+.mx-sender-label.active{color:var(--accent2)}
+.mx-rcv-th{position:sticky;left:0;z-index:7;background:var(--bg1);border-right:1px solid var(--border2);border-bottom:1px solid var(--border);padding:6px 10px 6px 12px;min-width:190px;max-width:190px;width:190px;vertical-align:middle}
+.mx-rcv-label{font-size:13px;font-weight:600;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px}
 .mx-rcv-label.active{color:var(--text)}
-.mx-rcv-fmt{font-size:9px;color:var(--text3);margin-top:1px}
-
-/* Matrix cells */
-.mx-cell{
-  border-right:1px solid var(--border);
-  border-bottom:1px solid var(--border);
-  text-align:center;
-  padding:0;
-  position:relative;
-  min-width:52px;max-width:52px;width:52px;
-  height:36px;
-}
-.mx-cell-btn{
-  width:100%;height:100%;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;
-  background:transparent;
-  border:none;
-  transition:background .1s;
-  position:relative;
-}
-.mx-cell-btn:hover{background:rgba(0,200,255,.07)}
-.mx-cell-btn.active{background:rgba(0,200,255,.12)}
-.mx-cell-btn.active:hover{background:rgba(0,200,255,.2)}
+.mx-rcv-fmt{font-size:12px;color:var(--text3);margin-top:1px}
+.mx-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center;padding:0;position:relative;min-width:54px;max-width:54px;width:54px;height:38px}
+.mx-cell-btn{width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;background:transparent;border:none;position:relative}
+.mx-cell-btn:hover{background:color-mix(in srgb, var(--accent) 10%, transparent)}
+.mx-cell-btn.active{background:color-mix(in srgb, var(--accent) 18%, transparent)}
+.mx-cell-btn.active:hover{background:color-mix(in srgb, var(--accent) 26%, transparent)}
 .mx-cell-btn.pending{opacity:.5;cursor:wait;pointer-events:none}
-.mx-cell-btn.error-cell{background:rgba(255,60,90,.08)}
+.mx-cell-btn.error-cell{background:color-mix(in srgb, var(--err) 12%, transparent)}
 .mx-cell-btn.fmt-mismatch{cursor:not-allowed;opacity:.35}
 .mx-cell-btn.fmt-mismatch:hover{background:transparent}
-
-/* Route indicator dots */
-.mx-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;transition:all .15s}
+.mx-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;transition:background .15s}
 .mx-dot.idle{background:var(--bg3);border:1px solid var(--border2)}
 .mx-dot.active{background:var(--accent);box-shadow:0 0 8px var(--accent);border:none}
 .mx-dot.error-dot{background:var(--err);box-shadow:0 0 6px var(--err);border:none}
 .mx-dot.pending-dot{background:var(--warn);animation:pulseDot 1s ease-in-out infinite;border:none}
-@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
-
-/* Format incompatibility cross */
-.mx-cross{font-size:10px;color:var(--border2)}
-
-/* Connected route info tooltip on hover */
-.mx-cell-btn.active::after{
-  content:attr(data-tip);
-  position:absolute;
-  bottom:calc(100% + 6px);
-  left:50%;transform:translateX(-50%);
-  background:var(--bg3);border:1px solid var(--border2);
-  color:var(--text2);font-size:9.5px;font-family:var(--mono);
-  padding:4px 8px;border-radius:4px;
-  white-space:nowrap;pointer-events:none;
-  opacity:0;transition:opacity .15s;
-  z-index:20;
-}
+@keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.45}}
+.mx-cross{font-size:12px;color:var(--border2)}
+.mx-cell-btn.active::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-size:12px;font-family:var(--mono);padding:4px 8px;border-radius:7px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:20}
 .mx-cell-btn.active:hover::after{opacity:1}
 
-/* Route toast notification */
-.route-toast{
-  position:fixed;bottom:24px;right:24px;z-index:100;
-  background:var(--bg1);border:1px solid var(--border2);border-radius:var(--r2);
-  padding:12px 16px;min-width:280px;max-width:380px;
-  display:flex;align-items:flex-start;gap:10px;
-  box-shadow:0 8px 32px rgba(0,0,0,.6);
-  animation:toastIn .2s ease-out;
-}
-@keyframes toastIn{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
-.route-toast.ok{border-color:rgba(0,224,108,.3)}
-.route-toast.err{border-color:rgba(255,60,90,.3)}
-.route-toast-icon{flex-shrink:0;margin-top:1px}
+/* Route result card — bottom centre, where every range product says things */
+.route-toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:100;background:var(--bg1);border:1px solid var(--border2);border-radius:var(--r2);padding:12px 16px;min-width:300px;max-width:min(440px,calc(100vw - 32px));display:flex;align-items:flex-start;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.route-toast.ok{border-color:color-mix(in srgb, var(--ok) 45%, transparent)}
+.route-toast.err{border-color:color-mix(in srgb, var(--err) 45%, transparent)}
+.route-toast-icon{flex-shrink:0;margin-top:2px}
 .route-toast-body{flex:1;min-width:0}
-.route-toast-title{font-size:11px;font-weight:600;color:#fff;margin-bottom:3px}
-.route-toast-msg{font-size:10.5px;color:var(--text2);line-height:1.4}
-.route-toast-close{cursor:pointer;color:var(--text3);flex-shrink:0;transition:color .12s}
+.route-toast-title{font-size:14px;font-weight:800;color:var(--text);margin-bottom:3px}
+.route-toast-msg{font-size:13px;color:var(--text2);line-height:1.45}
+.route-toast-close{cursor:pointer;color:var(--text2);flex-shrink:0}
 .route-toast-close:hover{color:var(--text)}
 
 /* Format filter pills */
-.fmt-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:var(--mono);font-size:10px;cursor:pointer;transition:all .12s}
-.fmt-pill:hover{border-color:var(--border2);color:var(--text);background:var(--bg2)}
-.fmt-pill.active{background:rgba(0,200,255,.1);border-color:rgba(0,200,255,.4);color:var(--accent)}
-
-/* Legend */
-.matrix-legend{display:flex;align-items:center;gap:14px;font-size:9.5px;color:var(--text3)}
-.legend-item{display:flex;align-items:center;gap:5px}
-
+.fmt-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font:700 13px var(--sans);cursor:pointer}
+.fmt-pill:hover{color:var(--text);filter:brightness(1.12)}
+.fmt-pill.active{background:color-mix(in srgb, var(--accent) 18%, var(--bg));border-color:color-mix(in srgb, var(--accent) 55%, transparent);color:var(--text)}
+.matrix-legend{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--text2)}
+.legend-item{display:flex;align-items:center;gap:6px}
 
 /* ── EMPTY STATE ─────────────────────────────────────────────────────────── */
-.empty{text-align:center;padding:64px 20px;color:var(--text3)}
-.empty-icon{font-size:28px;margin-bottom:12px;opacity:.35}
-.empty-title{font-family:var(--sans);font-size:15px;color:var(--text2);margin-bottom:5px}
-.empty-body{font-size:11px;line-height:1.6}
+.empty{text-align:center;padding:64px 20px;color:var(--text2)}
+.empty-icon{font-size:30px;margin-bottom:12px;opacity:.5}
+.empty-title{font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px}
+.empty-body{font-size:14px;line-height:1.6}
 
-/* ── LICENCE BADGE + ACTIVATION MODAL ────────────────────────────────────── */
-.lic-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:100px;font-size:10px;font-weight:600;letter-spacing:.03em;cursor:pointer;white-space:nowrap;border:1px solid transparent;user-select:none}
-.lic-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
-.lic-badge.licensed{background:var(--ok-dim);color:var(--ok);border-color:rgba(0,224,108,.3)}
-.lic-badge.trial{background:var(--warn-dim);color:var(--warn);border-color:rgba(245,180,0,.3)}
-.lic-badge.unlicensed{background:var(--err-dim);color:var(--err);border-color:rgba(255,60,90,.35)}
+/* ── LICENCE BADGE + ACTIVATION DIALOG (the range's badge and dialog) ────── */
+.lic-badge{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;border:1px solid var(--border);background:var(--bg1);user-select:none}
+.lic-badge::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+.lic-badge.licensed{color:#6fe3a5;border-color:color-mix(in srgb, var(--ok) 40%, transparent)}
+.lic-badge.trial{color:#ffd489;border-color:color-mix(in srgb, var(--warn) 45%, transparent)}
+.lic-badge.unlicensed{color:#ff8f9b;border-color:color-mix(in srgb, var(--err) 45%, transparent)}
 .lic-badge:hover{filter:brightness(1.15)}
-
-.lic-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center}
+.lic-overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
 .lic-overlay.hidden{display:none}
-.lic-modal{width:460px;max-width:92vw;background:var(--bg1);border:1px solid var(--border2);border-radius:var(--r2);box-shadow:0 16px 48px rgba(0,0,0,.6);overflow:hidden}
-.lic-modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
-.lic-modal-title{font-family:var(--sans);font-size:15px;font-weight:700;color:#fff}
-.lic-modal-close{cursor:pointer;color:var(--text3);font-size:16px;line-height:1}
+.lic-modal{width:min(560px,100%);background:var(--bg1);border:1px solid var(--border);border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.6);overflow:hidden}
+.lic-modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 0}
+.lic-modal-title{font-size:1.05rem;font-weight:800;color:var(--text)}
+.lic-modal-close{cursor:pointer;color:var(--text2);font-size:1.5rem;line-height:1;padding:0 4px;border-radius:6px}
 .lic-modal-close:hover{color:var(--text)}
-.lic-status{padding:14px 18px;font-size:12px;line-height:1.6;color:var(--text2);border-bottom:1px solid var(--border)}
+.lic-status{padding:10px 18px 4px;font-size:14px;line-height:1.6;color:var(--text2)}
 .lic-status b{color:var(--text)}
-.lic-field{padding:14px 18px 6px}
-.lic-field label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
-.lic-field textarea{width:100%;min-height:74px;resize:vertical;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:9px 11px;color:var(--text);font-family:var(--mono);font-size:11px;outline:none;word-break:break-all}
+.lic-field{padding:10px 18px 6px}
+.lic-field label{display:block;font-size:13px;font-weight:700;color:var(--text2);margin-bottom:6px}
+.lic-field textarea{width:100%;min-height:76px;resize:vertical;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:9px 11px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;word-break:break-all}
 .lic-field textarea:focus{border-color:var(--accent)}
-.lic-msg{padding:2px 18px 0;font-size:11px;min-height:15px}
-.lic-msg.ok{color:var(--ok)}.lic-msg.err{color:var(--err)}
-.lic-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px}
+.lic-msg{padding:2px 18px 0;font-size:14px;font-weight:700;min-height:18px}
+.lic-msg.ok{color:#6fe3a5}.lic-msg.err{color:#ff8f9b}
+.lic-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 18px 16px;margin-top:10px;border-top:1px solid var(--border)}
+.lic-actions .btn{padding:8px 14px;font-size:14px}
+
 </style>
+<script>
+/* Where the other products of the suite live — generated from shared/suite.json by tools/sync-range.mjs. */
+window.__TK_SUITE__ = {"self":"scout","products":[{"id":"scout","name":"NMOS Scout","tagline":"See the fabric","live":"scout.html"},{"id":"quartermaster","name":"NMOS Quartermaster","tagline":"Orchestrate the IP","live":"quartermaster.html"}]};
+</script>
+
+
+
 </head>
 <body>
 <div class="app">
@@ -415,29 +1540,17 @@ textarea.form-input{resize:vertical;min-height:80px}
   <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
   <header class="header">
     <div class="logo">
-      <div class="logo-mark">
-        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="14" cy="14" r="13" stroke="#232c3d" stroke-width="1.5"/>
-          <circle cx="14" cy="14" r="4" fill="#00c8ff" opacity="0.9"/>
-          <circle cx="14" cy="14" r="8" stroke="#00c8ff" stroke-width="1" opacity="0.3"/>
-          <circle cx="14" cy="14" r="12" stroke="#00c8ff" stroke-width="0.5" opacity="0.15"/>
-          <circle cx="14" cy="6"  r="2" fill="#00c8ff" opacity="0.6"/>
-          <circle cx="22" cy="14" r="2" fill="#00c8ff" opacity="0.4"/>
-          <circle cx="6"  cy="14" r="2" fill="#00c8ff" opacity="0.4"/>
-          <circle cx="14" cy="22" r="2" fill="#00c8ff" opacity="0.4"/>
-        </svg>
-      </div>
-      <div>
-        <div class="logo-text">NMOS Scout</div>
-        <div class="logo-sub">IS-04 / IS-05 Diagnostics</div>
-      </div>
+      <!-- the range's lockup: mark + two words, the first heavy (Signal Captain, Deck Planner, NMOS Quartermaster) -->
+      <a class="tkr-brand" href="/" title="NMOS Scout — NMOS discovery &amp; diagnostics">
+        <img class="tkr-brand-mark" src="../assets/scout-mark.png" alt=""/><span><b>NMOS</b> Scout</span>
+      </a>
     </div>
 
     <div class="header-mid">
       <div class="url-bar">
-        <span class="url-bar-label">REGISTRY</span>
-        <input id="urlInput" type="text" value="http://nmos-registry.local:8080" placeholder="http://registry.local:8080"/>
-        <span id="urlHint" style="font-size:9px;color:var(--text3);white-space:nowrap;cursor:pointer;padding:2px 4px;border-radius:3px;transition:color .12s" title="Quick-fill Easy-NMOS registry address" onclick="showUrlHints()">Easy-NMOS?</span>
+        <span class="url-bar-label">Registry</span>
+        <input id="urlInput" type="text" value="http://nmos-registry.local:8080" placeholder="http://registry.local:8080" spellcheck="false"/>
+        <button type="button" id="urlHint" class="url-hint" title="Quick-fill Easy-NMOS registry address" onclick="showUrlHints()">Easy-NMOS?</button>
       </div>
       <select id="verSelect" class="ver-select" title="IS-04/IS-05 API version to scan with">
         <option>v1.3</option><option>v1.2</option><option>v1.1</option><option>v1.0</option>
@@ -446,16 +1559,19 @@ textarea.form-input{resize:vertical;min-height:80px}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         Scan
       </button>
+      <button class="btn btn-ghost" id="btnDiscover" onclick="doDiscover()" title="Auto-discover NMOS registries on the network (mDNS / DNS-SD)" style="white-space:nowrap">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        Find
+      </button>
     </div>
+    <div id="discoverList" class="discover-list" hidden></div>
 
     <div class="header-right">
       <span id="licBadge" class="lic-badge" onclick="openActivate()" tabindex="0" role="button" title="Licence status — click to activate">…</span>
-      <button class="btn btn-ghost" onclick="loadMock()" title="Load sample data — no live registry needed">Demo</button>
-      <button class="btn btn-ghost" id="btnExport" onclick="exportData()" disabled title="Download the current scan as JSON">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-        Export
-      </button>
-      <span id="mockBadge" class="mock-badge" style="display:none" title="You are viewing sample data, not a live registry">DEMO DATA</span>
+      <!-- the account, at the right-hand end like every product in the range: [Name · Role] [Sign out].
+           (Demo, Export and To Quartermaster moved to the toolbar below, 2026-10-01: the header keeps the
+           lockup, the registry and the account, like Signal Captain's, and the address stops being squeezed.) -->
+      <span id="acct"></span>
     </div>
   </header>
 
@@ -534,9 +1650,24 @@ textarea.form-input{resize:vertical;min-height:80px}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
         <input type="text" id="searchInput" placeholder="Search…" oninput="renderCurrentSection()"/>
       </div>
+      <span id="mockBadge" class="mock-badge" style="display:none" title="You are viewing sample data, not a live registry">Demo data</span>
+      <button class="btn btn-ghost small" onclick="loadMock()" title="Load sample data — no live registry needed">Demo</button>
+      <button class="btn btn-ghost small" id="btnExport" onclick="exportData()" disabled title="Download the current scan as JSON">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Export
+      </button>
+      <!-- ⚠ Beside Export on purpose: it is the same act — "take this scan
+           somewhere useful" — and Quartermaster has always accepted exactly
+           this bundle. What was missing was a way to do it without downloading
+           a file from one product to upload into another. -->
+      <button class="btn btn-ghost small" id="btnToQm" onclick="sendToQuartermaster()" disabled
+              title="Send this scan straight to NMOS Quartermaster">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        To Quartermaster
+      </button>
       <span class="conn-ind" id="connInd" title="Connecting to the Scout server…"><span class="conn-dot"></span><span id="connIndLabel">connecting</span></span>
-      <span id="lastScanTs" style="color:var(--text3);font-size:10px;margin-right:2px;white-space:nowrap"></span>
-      <button class="btn btn-ghost" onclick="doScan()" id="btnRefresh" style="font-size:10px;padding:4px 10px">
+      <span id="lastScanTs" class="last-scan"></span>
+      <button class="btn btn-ghost small" onclick="doScan()" id="btnRefresh">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         Refresh
       </button>
@@ -552,14 +1683,14 @@ textarea.form-input{resize:vertical;min-height:80px}
       <span class="log-header-title">Request Log</span>
       <span class="nav-count" id="logCountBadge">0</span>
       <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
-        <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="clearLog();event.stopPropagation()">Clear</button>
-        <button class="btn btn-ghost" style="padding:3px 7px" onclick="toggleLog(event)" title="Collapse / expand log">
+        <button class="btn btn-ghost small" onclick="clearLog();event.stopPropagation()">Clear</button>
+        <button class="btn btn-ghost small" onclick="toggleLog(event)" title="Collapse / expand log" aria-label="Collapse or expand the request log">
           <svg id="logChevron" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
         </button>
       </div>
     </div>
     <div class="log-entries" id="logEntries">
-      <div style="color:var(--text3);font-size:11px;padding:16px;text-align:center">No requests yet. Click Scan to begin.</div>
+      <div class="log-empty">No requests yet. Press Scan to begin.</div>
     </div>
   </div>
 
@@ -574,7 +1705,7 @@ textarea.form-input{resize:vertical;min-height:80px}
   <div class="lic-modal" onclick="event.stopPropagation()">
     <div class="lic-modal-head">
       <div class="lic-modal-title">NMOS Scout — Licence</div>
-      <span class="lic-modal-close" onclick="closeActivate()" tabindex="0" role="button">✕</span>
+      <span class="lic-modal-close" onclick="closeActivate()" tabindex="0" role="button" aria-label="Close">×</span>
     </div>
     <div id="licModalStatus" class="lic-status"></div>
     <div class="lic-field">
@@ -590,69 +1721,25 @@ textarea.form-input{resize:vertical;min-height:80px}
 </div>
 
 <script>
-/* ===== NMOS Scout — live demo backend stub ===== */
-(function(){
-  var STATE = {"registry":{"url":"http://nmos-registry.local:8080","label":"Primary Registry (mock)","isMock":true,"apis":{"registration":{"versions":["v1.2","v1.3"]},"query":{"versions":["v1.2","v1.3"]}}},"resources":{"nodes":[{"id":"d2e7e1c0-1a2b-4c3d-8e5f-6a7b8c9d0e1f","label":"Camera Encoder A","hostname":"cam-enc-a.local","href":"http://192.168.1.10:3000/","api":{"versions":["v1.2","v1.3"]},"clocks":[{"name":"clk0","ref_type":"ptp"}],"interfaces":[{"name":"eth0","chassis_id":"70:b3:d5:93:10:01","port_id":"70:b3:d5:93:10:01"}],"tags":{},"version":"1687200001:000000000","_warnings":[],"_health":"ok"},{"id":"a1b2c3d4-e5f6-7890-abcd-ef1234567890","label":"Production Switcher","hostname":"prod-sw.local","href":"http://192.168.1.20:3000/","api":{"versions":["v1.2"]},"clocks":[{"name":"clk0","ref_type":"internal"}],"interfaces":[{"name":"eth0","chassis_id":"70:b3:d5:93:10:02","port_id":"70:b3:d5:93:10:02"}],"tags":{},"version":"1687100000:000000000","_warnings":[],"_health":"ok"},{"id":"f9e8d7c6-b5a4-3210-fedc-ba9876543210","label":"Graphics Engine","hostname":"gfx.local","href":"http://192.168.1.30:3000/","api":{"versions":["v1.3"]},"clocks":[{"name":"clk0","ref_type":"ptp"}],"interfaces":[],"tags":{},"version":"1687300000:000000000","_warnings":["No interfaces declared"],"_health":"warn"}],"devices":[{"id":"dev-0001-0000-0000-0000-000000000001","label":"Camera Encoder A - Device","type":"urn:x-nmos:device:generic","node_id":"d2e7e1c0-1a2b-4c3d-8e5f-6a7b8c9d0e1f","senders":["snd-0001-0000-0000-0000-000000000001"],"receivers":["rcv-0001-0000-0000-0000-000000000001"],"controls":[{"type":"urn:x-nmos:control:sr-ctrl/v1.1","href":"http://192.168.1.10:3000/x-nmos/connection/"}],"version":"1687200002:000000000","_warnings":[],"_health":"ok"},{"id":"dev-0002-0000-0000-0000-000000000002","label":"Production Switcher - Video Device","type":"urn:x-nmos:device:generic","node_id":"a1b2c3d4-e5f6-7890-abcd-ef1234567890","senders":["snd-0002-0000-0000-0000-000000000001"],"receivers":["rcv-0002-0000-0000-0000-000000000001","rcv-0002-0000-0000-0000-000000000002"],"controls":[],"version":"1687100001:000000000","_warnings":["No IS-05 Connection API control declared"],"_health":"warn"}],"sources":[{"id":"src-0001-0000-0000-0000-000000000001","label":"Camera A - Video","description":"HD Video from Camera Encoder A","format":"urn:x-nmos:format:video","device_id":"dev-0001-0000-0000-0000-000000000001","parents":[],"clock_name":"clk0","grain_rate":{"numerator":25,"denominator":1},"version":"1687200003:000000000","_warnings":[],"_health":"ok"},{"id":"src-0001-0000-0000-0000-000000000002","label":"Camera A - Audio","description":"AES67 Audio from Camera Encoder A","format":"urn:x-nmos:format:audio","device_id":"dev-0001-0000-0000-0000-000000000001","parents":[],"clock_name":"clk0","grain_rate":{"numerator":48000,"denominator":1},"version":"1687200004:000000000","_warnings":[],"_health":"ok"}],"flows":[{"id":"flw-0001-0000-0000-0000-000000000001","label":"Camera A - HD Video Flow","format":"urn:x-nmos:format:video","source_id":"src-0001-0000-0000-0000-000000000001","device_id":"dev-0001-0000-0000-0000-000000000001","media_type":"video/raw","frame_width":1920,"frame_height":1080,"interlace_mode":"progressive","colorspace":"BT709","version":"1687200005:000000000","_warnings":[],"_health":"ok"},{"id":"flw-0001-0000-0000-0000-000000000002","label":"Camera A - Audio Flow","format":"urn:x-nmos:format:audio","source_id":"src-0001-0000-0000-0000-000000000002","device_id":"dev-0001-0000-0000-0000-000000000001","media_type":"audio/L24","sample_rate":{"numerator":48000,"denominator":1},"bit_depth":24,"version":"1687200006:000000000","_warnings":[],"_health":"ok"}],"senders":[{"id":"snd-0001-0000-0000-0000-000000000001","label":"Camera A - Video Sender","description":"ST 2110-20 Video","flow_id":"flw-0001-0000-0000-0000-000000000001","device_id":"dev-0001-0000-0000-0000-000000000001","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":["eth0"],"subscription":{"receiver_id":"rcv-0002-0000-0000-0000-000000000001","active":true},"manifest_href":"http://192.168.1.10:3000/x-nmos/connection/v1.1/single/senders/snd-0001/transportfile/","version":"1687200007:000000000","_warnings":[],"_health":"ok"},{"id":"snd-0001-0000-0000-0000-000000000002","label":"Camera A - Audio Sender","description":"AES67 Audio","flow_id":"flw-0001-0000-0000-0000-000000000002","device_id":"dev-0001-0000-0000-0000-000000000001","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":["eth0"],"subscription":{"receiver_id":null,"active":false},"manifest_href":"http://192.168.1.10:3000/x-nmos/connection/v1.1/single/senders/snd-0001a/transportfile/","version":"1687200009:000000000","_warnings":[],"_health":"ok"},{"id":"snd-0002-0000-0000-0000-000000000001","label":"Switcher PGM Output","description":"ST 2110-20 Programme","flow_id":null,"device_id":"dev-0002-0000-0000-0000-000000000002","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":["eth0"],"subscription":{"receiver_id":null,"active":false},"manifest_href":null,"version":"1687100002:000000000","_warnings":["flow_id is null — sender has no associated flow","manifest_href is null — SDP not reachable"],"_health":"error"}],"receivers":[{"id":"rcv-0001-0000-0000-0000-000000000001","label":"Camera A - Video Mon","format":"urn:x-nmos:format:video","device_id":"dev-0001-0000-0000-0000-000000000001","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":["eth0"],"subscription":{"sender_id":null,"active":false},"caps":{"media_types":["video/raw"]},"version":"1687200008:000000000","_warnings":[],"_health":"ok"},{"id":"rcv-0001-0000-0000-0000-000000000002","label":"Camera A - Audio Mon","format":"urn:x-nmos:format:audio","device_id":"dev-0001-0000-0000-0000-000000000001","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":["eth0"],"subscription":{"sender_id":null,"active":false},"caps":{"media_types":["audio/L24"]},"version":"1687200010:000000000","_warnings":[],"_health":"ok"},{"id":"rcv-0002-0000-0000-0000-000000000001","label":"Switcher Input A","format":"urn:x-nmos:format:video","device_id":"dev-0002-0000-0000-0000-000000000002","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":["eth0"],"subscription":{"sender_id":"snd-0001-0000-0000-0000-000000000001","active":true},"caps":{},"version":"1687100003:000000000","_warnings":["caps is empty or missing"],"_health":"error"},{"id":"rcv-0002-0000-0000-0000-000000000002","label":"Switcher Input B","format":"urn:x-nmos:format:video","device_id":"dev-0002-0000-0000-0000-000000000002","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":[],"subscription":{"sender_id":null,"active":false},"caps":{},"version":"1687100004:000000000","_warnings":["caps is empty or missing","interface_bindings is empty"],"_health":"error"},{"id":"rcv-0002-0000-0000-0000-000000000003","label":"Switcher Audio In A","format":"urn:x-nmos:format:audio","device_id":"dev-0002-0000-0000-0000-000000000002","transport":"urn:x-nmos:transport:rtp.mcast","interface_bindings":["eth0"],"subscription":{"sender_id":null,"active":false},"caps":{"media_types":["audio/L24"]},"version":"1687100005:000000000","_warnings":[],"_health":"ok"}],"subscriptions":[]},"diff":null,"lastScan":"2026-06-23T15:03:27.149Z","scanning":false,"scanProgress":"","isMock":true,"logCount":0,"license":{"state":"licensed","licensee":"Demo Studio","edition":"pro"}};
-  var LOG = [];
-  var es = null, esListeners = {};
-  function emit(type, data){ (esListeners[type]||[]).forEach(function(cb){ cb({ data: JSON.stringify(data) }); }); }
-  function pushState(){ emit('state', STATE); }
-  function addLog(method, p, status){
-    var e = { ts:new Date().toISOString(), method:method, url:'http://demo-registry.local/x-nmos/'+p,
-              status:status, duration: 18 + Math.floor(Math.random()*70) };
-    LOG.unshift(e); if (LOG.length>200) LOG.pop(); emit('log', e);
-  }
-  function FakeES(){ es = this; setTimeout(function(){ if(es.onopen) es.onopen(); pushState();
-      [1,2,3].forEach(function(d){ setTimeout(function(){ try{ if(typeof renderCurrentSection==='function') renderCurrentSection(); }catch(e){} }, 150*d); });
-      ['/nodes','/devices','/senders','/receivers'].forEach(function(p,i){ setTimeout(function(){ addLog('GET','query/v1.3'+p,200); }, 120+i*90); });
-    }, 60); }
-  FakeES.prototype.addEventListener = function(t,cb){ (esListeners[t]=esListeners[t]||[]).push(cb); };
-  FakeES.prototype.close = function(){};
-  window.EventSource = FakeES;
-
-  function R(body, status){ status=status||200; return Promise.resolve({ ok: status<400, status: status,
-    json: function(){ return Promise.resolve(body); }, text: function(){ return Promise.resolve(JSON.stringify(body)); } }); }
-  function rcv(id){ return STATE.resources.receivers.find(function(x){return x.id===id;}); }
-  function snd(id){ return STATE.resources.senders.find(function(x){return x.id===id;}); }
-
-  window.fetch = function(url, opts){
-    opts = opts||{}; var u = String(url); var m = (opts.method||'GET').toUpperCase();
-    try {
-      if (u.indexOf('/api/license/activate')>-1) return R({ ok:true, status: STATE.license });
-      if (u.indexOf('/api/license')>-1)          return R(STATE.license);
-      if (u.indexOf('/api/state')>-1)            return R(STATE);
-      if (u.indexOf('/api/log')>-1){ if(m==='DELETE'){ LOG=[]; return R({ok:true}); } return R(LOG.slice()); }
-      if (u.indexOf('/api/scan')>-1){ STATE.scanning=true; STATE.scanProgress='Discovering APIs…'; pushState();
-        setTimeout(function(){ STATE.scanProgress='Fetching resources…'; pushState(); },350);
-        setTimeout(function(){ STATE.scanning=false; STATE.scanProgress=''; STATE.lastScan=new Date().toISOString();
-          ['/nodes','/devices','/senders','/receivers','/flows'].forEach(function(p){ addLog('GET','query/v1.3'+p,200); }); pushState(); }, 950);
-        return R({ ok:true }); }
-      if (u.indexOf('/api/mock')>-1){ STATE.isMock=true; pushState(); return R({ok:true}); }
-      if (u.indexOf('/api/route')>-1){ var b=JSON.parse(opts.body||'{}'); var r=rcv(b.receiverId), s=snd(b.senderId);
-        if(r) r.subscription={ sender_id:b.senderId, active:true };
-        if(s) s.subscription=Object.assign({}, s.subscription, { receiver_id:b.receiverId, active:true });
-        addLog('PATCH','connection/v1.1/single/receivers/'+(b.receiverId||'').slice(0,8)+'/staged',200); pushState();
-        return R({ ok:true, staged:{status:200}, active:{status:200} }); }
-      if (u.indexOf('/api/disconnect')>-1){ var b2=JSON.parse(opts.body||'{}'); var r2=rcv(b2.receiverId);
-        if(r2) r2.subscription={ sender_id:null, active:false };
-        addLog('PATCH','connection/v1.1/single/receivers/'+(b2.receiverId||'').slice(0,8)+'/staged',200); pushState();
-        return R({ ok:true, staged:{status:200}, active:{status:200} }); }
-      if (u.indexOf('/api/subscribe')>-1){ addLog('POST','query/v1.3/subscriptions',201); return R({ ok:true, status:201, body:{ id:'demo-sub-1', ws_href:'wss://demo-registry.local/x-nmos/query/subscriptions/demo-sub-1' } }); }
-      if (u.indexOf('/api/proxy')>-1){ addLog('GET','query/v1.3/senders',200); return R({ ok:true, status:200, body: STATE.resources.senders }); }
-      if (u.indexOf('/api/export')>-1) return R(STATE);
-    } catch(e){ /* fall through */ }
-    return R({ ok:true });
-  };
+// ── Optional access lock (opt-in) ────────────────────────────────────────────
+// If the server has SCOUT_TOKEN set, control actions need a token. Open the UI
+// once as  …/?token=YOURTOKEN  — it's saved locally and attached to every /api
+// call from then on. Nothing changes when no token is configured.
+(function () {
+  try {
+    const qp = new URLSearchParams(location.search).get('token');
+    if (qp !== null) { localStorage.setItem('scout.access', qp); history.replaceState(null, '', location.pathname); }
+    const tok = localStorage.getItem('scout.access') || '';
+    if (!tok) return;
+    const _fetch = window.fetch;
+    window.fetch = function (input, init) {
+      const url = typeof input === 'string' ? input : (input && input.url) || '';
+      if (url.indexOf('/api/') !== -1) { init = init || {}; init.headers = Object.assign({}, init.headers, { 'X-Access-Token': tok }); }
+      return _fetch(input, init);
+    };
+  } catch (e) { /* localStorage unavailable — lock simply not applied client-side */ }
 })();
-</script>
 
-<div id="demoRibbon" style="position:fixed;z-index:99999;left:10px;bottom:10px;display:flex;align-items:center;gap:7px;
-  padding:5px 11px;border-radius:100px;background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.4);
-  color:#00d4ff;font:600 11px/1 'JetBrains Mono',monospace;letter-spacing:.04em;pointer-events:none;backdrop-filter:blur(4px)">
-  <span style="width:6px;height:6px;border-radius:50%;background:#00e676;box-shadow:0 0 6px #00e676"></span>
-  LIVE DEMO · sample data · runs in your browser
-</div>
-<script>
 // ── STATE ────────────────────────────────────────────────────────────────────
 let appState = { resources: null, registry: null, diff: null, scanning: false, isMock: false, lastScan: null };
 let currentSection = 'overview';
@@ -667,7 +1754,7 @@ const $ = {};
 function cacheDom() {
   for (const id of [
     'urlInput', 'verSelect', 'urlHint',
-    'btnScan', 'btnExport',
+    'btnScan', 'btnExport', 'btnToQm',
     'mockBadge', 'lastScanTs',
     'scanBar', 'scanMsg',
     'searchBox', 'searchInput',
@@ -713,24 +1800,78 @@ function setConn(status) {  // 'live' | 'down' | 'connecting'
            : 'Connecting to the Scout server…';
 }
 
-const es = new EventSource('/api/events');
-es.onopen = () => setConn('live');
-es.addEventListener('state', e => {
-  const s = JSON.parse(e.data);
-  appState = { ...appState, ...s };
-  applyState();
-  setConn('live');  // receiving state implies the feed is live
-});
-es.addEventListener('log', e => {
-  const entry = JSON.parse(e.data);
-  logs.unshift(entry);
-  if (logs.length > LOG_CAP) logs.pop();
-  renderLog();
-  $.logCountBadge.textContent = logs.length;
-});
-es.onerror = () => setConn('down');  // EventSource will auto-reconnect; flag it meanwhile
+/* ⚠ Opened only once signed in, and carrying the session as ?t= — an EventSource cannot send a header.
+   ⚠ A refused stream (401: the session ended) CLOSES rather than retrying, so a closed feed asks /api/state:
+   a 401 there brings the sign-in page back (the range's fetch wrapper), anything else reconnects. */
+let es = null;
+function connectFeed() {
+  if (es) { try { es.close(); } catch (e) { /* gone */ } }
+  es = new EventSource(Auth.withToken('/api/events'));
+  es.onopen = () => setConn('live');
+  es.addEventListener('state', e => {
+    const s = JSON.parse(e.data);
+    appState = { ...appState, ...s };
+    applyState();
+    setConn('live');  // receiving state implies the feed is live
+  });
+  es.addEventListener('log', e => {
+    const entry = JSON.parse(e.data);
+    logs.unshift(entry);
+    if (logs.length > LOG_CAP) logs.pop();
+    renderLog();
+    $.logCountBadge.textContent = logs.length;
+  });
+  es.onerror = () => {
+    setConn('down');  // EventSource will auto-reconnect a dropped line; flag it meanwhile
+    if (es && es.readyState === 2) {
+      const mine = es;
+      setTimeout(() => {
+        if (es !== mine) return;
+        fetch('/api/state').then((r) => { if (r.ok && es === mine) connectFeed(); }).catch(() => setTimeout(() => { if (es === mine) connectFeed(); }, 5000));
+      }, 3000);
+    }
+  };
+}
 
 // ── ACTIONS ──────────────────────────────────────────────────────────────────
+async function doDiscover() {
+  const btn  = document.getElementById('btnDiscover');
+  const list = document.getElementById('discoverList');
+  const eh = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const orig = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = 'Searching…';
+  list.hidden = false; list.innerHTML = '<div class="dl-note">Browsing the network for NMOS registries…</div>';
+  try {
+    const d = await (await fetch('/api/discover')).json();
+    const regs = d.registries || [];
+    if (!regs.length) {
+      list.innerHTML = '<div class="dl-note">No registries found via mDNS.' +
+        (d.error ? ' (' + eh(d.error) + ')' : ' Make sure a registry advertises <code>_nmos-query._tcp</code> here, or type the URL above.') + '</div>';
+    } else {
+      list.innerHTML = regs.map(g => {
+        const vers = (g.versions && g.versions.length) ? ' · ' + eh(g.versions.join('/')) : '';
+        return '<button type="button" data-url="' + eh(g.url) + '" onclick="pickRegistry(this.dataset.url)">' +
+          '<b>' + eh(g.name || g.host) + '</b> <span class="dl-url">' + eh(g.url) + '</span>' +
+          '<div class="dl-kind">' + eh(g.kind) + vers + '</div></button>';
+      }).join('');
+    }
+  } catch (e) {
+    list.innerHTML = '<div class="dl-err">Discovery failed: ' + eh(e.message) + '</div>';
+  } finally {
+    btn.disabled = false; btn.innerHTML = orig;
+  }
+}
+function pickRegistry(url) {
+  document.getElementById('urlInput').value = url;
+  document.getElementById('discoverList').hidden = true;
+}
+document.addEventListener('click', (e) => {
+  const list = document.getElementById('discoverList');
+  if (!list || list.hidden) return;
+  if (e.target.closest('#discoverList') || e.target.closest('#btnDiscover')) return;
+  list.hidden = true;
+});
+
 async function doScan() {
   const url = $.urlInput.value.trim();
   const ver = $.verSelect.value;
@@ -742,12 +1883,13 @@ async function doScan() {
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ url, apiVersion: ver }),
     });
-    if (!r.ok) {
+    /* a 401 has already brought the sign-in page back (the range's fetch wrapper); anything else is said */
+    if (!r.ok && r.status !== 401) {
       const err = await r.json().catch(() => ({}));
-      alert('Scan failed: ' + (err.error || `HTTP ${r.status}`));
+      TeunkeyRange.toast('Scan failed: ' + (err.error || `HTTP ${r.status}`), true);
     }
   } catch (e) {
-    alert('Scan request failed: ' + e.message);
+    TeunkeyRange.toast('Scan request failed: ' + e.message, true);
   } finally {
     $.btnScan.disabled = false;
     refreshLog();
@@ -758,8 +1900,75 @@ async function loadMock() {
   try { await fetch('/api/mock', { method: 'POST' }); } catch (e) { console.error(e); }
 }
 
-function exportData() {
-  alert('Demo: export is disabled in the live demo.');
+/* ⚠ Fetched with the session and saved from memory — a plain link to /api/export cannot carry it, and a
+   session in a link would land in the browser history. */
+async function exportData() {
+  try {
+    const r = await fetch('/api/export');
+    if (!r.ok) { if (r.status !== 401) TeunkeyRange.toast('Export failed: HTTP ' + r.status, true); return; }
+    const url = URL.createObjectURL(await r.blob());
+    const a = document.createElement('a');
+    a.href = url; a.download = 'nmos-scout-export.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch (e) { TeunkeyRange.toast('Export failed: ' + e.message, true); }
+}
+
+/* Hand the whole scan to Quartermaster in one press.
+ * ⚠ Posts to OUR server, which forwards it — Quartermaster is a different
+ *   origin and a browser POST would be a CORS failure that looks exactly like
+ *   Quartermaster being down. */
+async function sendToQuartermaster() {
+  const b = $.btnToQm;
+  if (!b || b.disabled) return;
+  const was = b.innerHTML;
+  b.disabled = true;
+  b.textContent = 'Sending…';
+  try {
+    const r = await fetch('/api/send-to-quartermaster', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ base: (window.__TK_SUITE__ && qmBase()) || undefined }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.ok) {
+      const n = j.imported && typeof j.imported === 'object'
+        ? Object.entries(j.imported).map(([k, v]) => v + ' ' + k).join(', ')
+        : (j.sent + ' resources');
+      toastMsg('Sent to Quartermaster — ' + n, false);
+    } else {
+      // ⚠ Quartermaster's own words, not "failed"
+      toastMsg(j.error || ('Quartermaster returned ' + r.status), true);
+    }
+  } catch (e) {
+    toastMsg('Could not reach this Scout server: ' + e.message, true);
+  } finally {
+    b.innerHTML = was;
+    b.disabled = false;
+  }
+}
+
+/* Where Quartermaster lives, from the suite list the switcher already carries —
+   one source of truth rather than a second hardcoded port. */
+function qmBase() {
+  try {
+    const p = (window.__TK_SUITE__.products || []).find((x) => x.id === 'quartermaster');
+    return p ? (p.live || ('http://' + location.hostname + ':' + p.port)) : undefined;
+  } catch (e) { return undefined; }
+}
+
+/* the range's toast — the same pill, in the same place, as every other product */
+function toastMsg(text, isError) {
+  TeunkeyRange.toast(text, !!isError);
+}
+
+/* the other products of the suite, for the account dialog (from window.__TK_SUITE__) */
+function suiteLinks() {
+  const S = window.__TK_SUITE__ || {};
+  return (S.products || []).filter((p) => p.id !== S.self).map((p) => ({
+    label: p.name, note: p.tagline || '',
+    href: p.live || ('http://' + location.hostname + ':' + p.port + '/'),
+  }));
 }
 
 async function clearLog() {
@@ -816,8 +2025,9 @@ function applyState() {
     $.lastScanTs.textContent = 'Last scan: ' + new Date(lastScan).toLocaleTimeString();
   }
 
-  // Export button
+  // Export button — and the hand-off, which needs the same thing: a scan
   $.btnExport.disabled = !resources;
+  if ($.btnToQm) $.btnToQm.disabled = !resources;
 
   // Nav counts — single pass per resource type
   if (resources) {
@@ -1001,7 +2211,7 @@ function renderResourceTable(content, type, list) {
     if (type === 'nodes') {
       const vers = (r.api?.versions||[]).map(v => `<span class="version-pill">${v}</span>`).join('');
       const clocks = (r.clocks||[]).map(c => `${c.name}(${c.ref_type})`).join(', ') || '—';
-      cells = `<td>${escHtml(r.hostname||'—')}</td><td>${vers||'—'}</td><td style="color:var(--text2);font-size:10px">${escHtml(clocks)}</td>`;
+      cells = `<td>${escHtml(r.hostname||'—')}</td><td>${vers||'—'}</td><td style="color:var(--text2);font-size:12px">${escHtml(clocks)}</td>`;
     }
     if (type === 'devices') {
       const hasCtrl = r.controls?.length > 0;
@@ -1014,13 +2224,13 @@ function renderResourceTable(content, type, list) {
     }
     if (type === 'flows') {
       const fmt = r.format?.split(':').pop();
-      cells = `<td><span class="tag">${fmt||'—'}</span></td><td style="color:var(--text2);font-size:10px">${escHtml(r.media_type||'—')}</td>`;
+      cells = `<td><span class="tag">${fmt||'—'}</span></td><td style="color:var(--text2);font-size:12px">${escHtml(r.media_type||'—')}</td>`;
     }
     if (type === 'senders') {
       const xport = r.transport?.split(':').pop()||'—';
       const hasFlow = !!r.flow_id;
       const active = r.subscription?.active;
-      cells = `<td><span class="tag">${xport}</span></td><td style="font-size:10px;color:${hasFlow?'var(--text3)':'var(--err)'}">${hasFlow?(r.flow_id?.slice(0,8)+'…'):'null'}</td><td>${active?'<span class="badge ok">active</span>':'<span class="badge info">idle</span>'}</td>`;
+      cells = `<td><span class="tag">${xport}</span></td><td style="font-size:12px;color:${hasFlow?'var(--text3)':'var(--err)'}">${hasFlow?(r.flow_id?.slice(0,8)+'…'):'null'}</td><td>${active?'<span class="badge ok">active</span>':'<span class="badge info">idle</span>'}</td>`;
     }
     if (type === 'receivers') {
       const fmt   = r.format?.split(':').pop()||'—';
@@ -1030,7 +2240,7 @@ function renderResourceTable(content, type, list) {
     }
     if (type === 'subscriptions') {
       const ws = r.ws_href;
-      cells = `<td style="color:var(--text2)">${escHtml(r.resource_path||'—')}</td><td style="color:${ws?'var(--accent)':'var(--err)'};font-size:10px">${escHtml(ws||'none')}</td>`;
+      cells = `<td style="color:var(--text2)">${escHtml(r.resource_path||'—')}</td><td style="color:${ws?'var(--accent)':'var(--err)'};font-size:12px">${escHtml(ws||'none')}</td>`;
     }
 
     const sel = selectedId === r.id ? 'selected' : '';
@@ -1042,7 +2252,7 @@ function renderResourceTable(content, type, list) {
   }
 
   content.innerHTML = `
-    <div style="color:var(--text3);font-size:10px;margin-bottom:10px">${filtered.length} / ${list.length} ${type}</div>
+    <div style="color:var(--text3);font-size:12px;margin-bottom:10px">${filtered.length} / ${list.length} ${type}</div>
     <table class="rtable">
       <thead><tr><th>Status</th><th>Label / ID</th>${cols}</tr></thead>
       <tbody>${rows}</tbody>
@@ -1094,7 +2304,7 @@ function renderSubTest(content) {
         <label class="form-label">persist</label>
         <label style="display:flex;align-items:center;gap:7px;cursor:pointer">
           <input type="checkbox" id="sub-persist"/>
-          <span style="font-size:11px;color:var(--text2)">persist across registry restart</span>
+          <span style="font-size:13px;color:var(--text2)">persist across registry restart</span>
         </label>
       </div>
       <div class="form-row" style="align-items:flex-start;margin-top:4px">
@@ -1102,7 +2312,7 @@ function renderSubTest(content) {
         <div style="display:flex;flex-direction:column;gap:7px;flex:1">
           <label style="display:flex;gap:7px;align-items:center;cursor:pointer">
             <input type="checkbox" id="sub-custom" onchange="toggleCustomPayload()"/>
-            <span style="font-size:11px;color:var(--text2)">use raw JSON</span>
+            <span style="font-size:13px;color:var(--text2)">use raw JSON</span>
           </label>
           <textarea class="form-input" id="sub-payload" placeholder='{"resource_path":"/senders","max_update_rate_ms":100}' style="display:none"></textarea>
         </div>
@@ -1112,7 +2322,7 @@ function renderSubTest(content) {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
           POST /subscriptions
         </button>
-        <span style="color:var(--text3);font-size:10px" id="sub-endpoint-label"></span>
+        <span style="color:var(--text3);font-size:12px" id="sub-endpoint-label"></span>
       </div>
     </div>
 
@@ -1162,7 +2372,7 @@ function updateSubPreview() {
 
 async function runSubscription() {
   const payload = buildSubPayload();
-  if (!payload) { alert('Invalid JSON in custom payload'); return; }
+  if (!payload) { TeunkeyRange.toast('That custom payload is not valid JSON.', true); return; }
   const btn = document.getElementById('btnSub');
   btn.disabled = true;
   btn.textContent = 'Sending…';
@@ -1177,9 +2387,9 @@ async function runSubscription() {
 
   let hint = '';
   if (!result.ok) {
-    if (result.status === 400) hint = `<div style="color:var(--warn);font-size:11px;margin-top:6px">400 Bad Request — check payload fields and API version compatibility</div>`;
-    if (result.status === 0)   hint = `<div style="color:var(--err);font-size:11px;margin-top:6px">Connection failed — registry unreachable or server error</div>`;
-    if (result.status === 404) hint = `<div style="color:var(--err);font-size:11px;margin-top:6px">404 Not Found — verify registry URL and API version path</div>`;
+    if (result.status === 400) hint = `<div style="color:var(--warn);font-size:13px;margin-top:6px">400 Bad Request — check payload fields and API version compatibility</div>`;
+    if (result.status === 0)   hint = `<div style="color:var(--err);font-size:13px;margin-top:6px">Connection failed — registry unreachable or server error</div>`;
+    if (result.status === 404) hint = `<div style="color:var(--err);font-size:13px;margin-top:6px">404 Not Found — verify registry URL and API version path</div>`;
   }
 
   document.getElementById('sub-result').innerHTML = `
@@ -1226,7 +2436,7 @@ async function runBuilder() {
     <div class="result-card ${cls}">
       <div class="result-header">
         <span class="badge ${result.ok?'ok':'error'}"><span class="dot ${result.ok?'ok':'error'}"></span>HTTP ${result.status||'—'}</span>
-        ${result.error ? `<span style="color:var(--err);font-size:11px">${escHtml(result.error)}</span>` : ''}
+        ${result.error ? `<span style="color:var(--err);font-size:13px">${escHtml(result.error)}</span>` : ''}
       </div>
       ${result.body ? `<div class="json-viewer">${renderJson(result.body)}</div>` : ''}
     </div>`;
@@ -1278,10 +2488,10 @@ function openDrawer(id, type) {
   }
 
   html += `<div class="drawer-section"><div class="drawer-section-label">Identity</div><div class="field-grid">`;
-  html += `<span class="field-key">id</span><span class="field-val" style="font-size:10px;font-family:var(--mono)">${r.id}</span>`;
+  html += `<span class="field-key">id</span><span class="field-val" style="font-size:12px;font-family:var(--mono)">${r.id}</span>`;
   if (r.label)       html += `<span class="field-key">label</span><span class="field-val">${escHtml(r.label)}</span>`;
   if (r.description) html += `<span class="field-key">description</span><span class="field-val">${escHtml(r.description)}</span>`;
-  if (r.version)     html += `<span class="field-key">version</span><span class="field-val" style="font-size:10px;color:var(--text3)">${r.version}</span>`;
+  if (r.version)     html += `<span class="field-key">version</span><span class="field-val" style="font-size:12px;color:var(--text3)">${r.version}</span>`;
   html += `</div></div>`;
 
   if (type === 'nodes') {
@@ -1296,8 +2506,8 @@ function openDrawer(id, type) {
   if (type === 'senders') {
     html += `<div class="drawer-section"><div class="drawer-section-label">Sender</div><div class="field-grid">`;
     html += `<span class="field-key">transport</span><span class="field-val"><span class="tag">${r.transport?.split(':').pop()||'—'}</span></span>`;
-    html += `<span class="field-key">flow</span><span class="field-val" style="font-size:10px;color:${r.flow_id?'var(--text3)':'var(--err)'}">${r.flow_id ? lookupLabel(r.flow_id,'flows') : 'null'}</span>`;
-    html += `<span class="field-key">device</span><span class="field-val" style="font-size:10px;color:var(--text3)">${lookupLabel(r.device_id,'devices')}</span>`;
+    html += `<span class="field-key">flow</span><span class="field-val" style="font-size:12px;color:${r.flow_id?'var(--text3)':'var(--err)'}">${r.flow_id ? lookupLabel(r.flow_id,'flows') : 'null'}</span>`;
+    html += `<span class="field-key">device</span><span class="field-val" style="font-size:12px;color:var(--text3)">${lookupLabel(r.device_id,'devices')}</span>`;
     if (r.manifest_href) html += `<span class="field-key">manifest</span><span class="field-val"><a href="${escHtml(r.manifest_href)}" target="_blank">SDP ↗</a></span>`;
     html += `<span class="field-key">active</span><span class="field-val">${String(r.subscription?.active||false)}</span>`;
     html += `</div></div>`;
@@ -1307,9 +2517,9 @@ function openDrawer(id, type) {
     html += `<div class="drawer-section"><div class="drawer-section-label">Receiver</div><div class="field-grid">`;
     html += `<span class="field-key">format</span><span class="field-val"><span class="tag">${r.format?.split(':').pop()||'—'}</span></span>`;
     html += `<span class="field-key">transport</span><span class="field-val"><span class="tag">${r.transport?.split(':').pop()||'—'}</span></span>`;
-    html += `<span class="field-key">device</span><span class="field-val" style="font-size:10px;color:var(--text3)">${lookupLabel(r.device_id,'devices')}</span>`;
+    html += `<span class="field-key">device</span><span class="field-val" style="font-size:12px;color:var(--text3)">${lookupLabel(r.device_id,'devices')}</span>`;
     html += `<span class="field-key">active</span><span class="field-val">${String(r.subscription?.active||false)}</span>`;
-    if (r.subscription?.sender_id) html += `<span class="field-key">sender</span><span class="field-val" style="font-size:10px;color:var(--text3)">${lookupLabel(r.subscription.sender_id,'senders')}</span>`;
+    if (r.subscription?.sender_id) html += `<span class="field-key">sender</span><span class="field-val" style="font-size:12px;color:var(--text3)">${lookupLabel(r.subscription.sender_id,'senders')}</span>`;
     html += `<span class="field-key">interfaces</span><span class="field-val" style="color:${r.interface_bindings?.length?'var(--text)':'var(--err)'}">${r.interface_bindings?.join(', ')||'none'}</span>`;
     html += `</div></div>`;
   }
@@ -1322,7 +2532,7 @@ function openDrawer(id, type) {
     if (r.colorspace)     html += `<span class="field-key">colorspace</span><span class="field-val">${r.colorspace}</span>`;
     if (r.bit_depth)      html += `<span class="field-key">bit_depth</span><span class="field-val">${r.bit_depth}</span>`;
     if (r.sample_rate)    html += `<span class="field-key">sample_rate</span><span class="field-val">${r.sample_rate.numerator}</span>`;
-    html += `<span class="field-key">source</span><span class="field-val" style="font-size:10px;color:var(--text3)">${lookupLabel(r.source_id,'sources')}</span>`;
+    html += `<span class="field-key">source</span><span class="field-val" style="font-size:12px;color:var(--text3)">${lookupLabel(r.source_id,'sources')}</span>`;
     html += `</div></div>`;
   }
 
@@ -1352,7 +2562,7 @@ function closeDrawer(e) {
 function renderLog() {
   const el = document.getElementById('logEntries');
   if (logs.length === 0) {
-    el.innerHTML = `<div style="color:var(--text3);font-size:11px;padding:16px;text-align:center">No requests yet. Click Scan to begin.</div>`;
+    el.innerHTML = `<div class="log-empty">No requests yet. Press Scan to begin.</div>`;
     return;
   }
   el.innerHTML = logs.map(e => {
@@ -1509,7 +2719,7 @@ function renderMatrix(content, resources) {
   for (const col of colItems) {
     const fmt    = matrixSwapped ? fmtKey(col.format) : senderFmt.get(col.id);
     const active = matrixSwapped ? activeSenderOf.has(col.id) : activeSenders.has(col.id);
-    const fmtBadge = fmt !== 'unknown' ? `<span class="tag" style="font-size:8px;margin-top:3px">${fmt}</span>` : '';
+    const fmtBadge = fmt !== 'unknown' ? `<span class="tag" style="font-size:11px;margin-top:3px">${fmt}</span>` : '';
     parts.push(`<th class="mx-sender-th" title="${escHtml(col.label||col.id)}"><div class="mx-sender-th-inner">${fmtBadge}<span class="mx-sender-label ${active?'active':''}">${escHtml(col.label||col.id.slice(0,8))}</span></div></th>`);
   }
   parts.push('</tr></thead><tbody>');
@@ -1520,7 +2730,7 @@ function renderMatrix(content, resources) {
     const rowFmt    = rowIsRcv ? fmtKey(row.format) : senderFmt.get(row.id);
     const rowActive = rowIsRcv ? !!activeSenderOf.get(row.id) : activeSenders.has(row.id);
 
-    parts.push(`<tr><th class="mx-rcv-th"><div class="mx-rcv-label ${rowActive?'active':''}" title="${escHtml(row.label||row.id)}">${escHtml(row.label||row.id)}</div><div class="mx-rcv-fmt"><span class="tag" style="font-size:8px">${rowFmt}</span>${rowActive ? `<span style="color:var(--ok);margin-left:5px;font-size:9px">● routed</span>` : ''}</div></th>`);
+    parts.push(`<tr><th class="mx-rcv-th"><div class="mx-rcv-label ${rowActive?'active':''}" title="${escHtml(row.label||row.id)}">${escHtml(row.label||row.id)}</div><div class="mx-rcv-fmt"><span class="tag" style="font-size:11px">${rowFmt}</span>${rowActive ? `<span style="color:var(--ok);margin-left:5px;font-size:12px">● routed</span>` : ''}</div></th>`);
 
     for (const col of colItems) {
       // Map row/col back to receiver/sender for state lookup.
@@ -1736,15 +2946,15 @@ function showUrlHints() {
     position:fixed;top:${headerH}px;left:0;right:0;margin:0 auto;max-width:520px;
     background:var(--bg1);border:1px solid var(--border2);border-top:2px solid var(--accent);
     border-radius:0 0 var(--r2) var(--r2);z-index:30;box-shadow:0 8px 32px rgba(0,0,0,.6);
-    padding:12px 16px;font-size:11px;
+    padding:12px 16px;font-size:13px;
   `;
 
   popup.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <span style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">Easy-NMOS Quick Connect</span>
+      <span style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">Easy-NMOS Quick Connect</span>
       <span style="cursor:pointer;color:var(--text3);font-size:16px;line-height:1" onclick="this.closest('.url-hint-popup').remove()">×</span>
     </div>
-    <div style="color:var(--text3);font-size:10px;margin-bottom:10px;line-height:1.6">
+    <div style="color:var(--text3);font-size:12px;margin-bottom:10px;line-height:1.6">
       Easy-NMOS uses <b style="color:var(--text2)">nmos-cpp</b> as its registry, published on <b style="color:var(--accent)">port 8010</b> by default.<br>
       Each container gets its own macvlan IP — replace <code style="color:var(--teal)">192.168.6.101</code> with your registry container's IP from <code style="color:var(--teal)">docker-compose.yml</code>.
     </div>
@@ -1754,11 +2964,11 @@ function showUrlHints() {
              onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'"
              onclick="fillUrl('${h.url}')">
           <code style="color:var(--accent);flex:1">${escHtml(h.url)}</code>
-          <span style="color:var(--text3);font-size:10px">${escHtml(h.label)}</span>
+          <span style="color:var(--text3);font-size:12px">${escHtml(h.label)}</span>
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>`).join('')}
     </div>
-    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);color:var(--text3);font-size:10px;line-height:1.6">
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);color:var(--text3);font-size:12px;line-height:1.6">
       <b style="color:var(--text2)">Tip:</b> After filling the URL, pick <b style="color:var(--text2)">v1.3</b> in the version selector and click <b style="color:var(--accent)">Scan</b>.<br>
       The virtual node (<code style="color:var(--teal)">nmos-virtnode</code>) registers senders &amp; receivers with IS-05 controls, so the Route Matrix will work immediately.
     </div>`;
@@ -1875,9 +3085,25 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
+/* Sign in first — the same sign-in page, account badges and account menu as every product in the Teunkey
+   Broadcast range (range/range-auth.js). Nothing reads the plant until somebody has signed in. */
 cacheDom();
 initKeyboard();
-refreshLog();
+const Auth = TeunkeyRange.identityClient({
+  product: 'NMOS Scout',
+  sub: 'NMOS discovery & diagnostics',
+  mark: '../assets/scout-mark.png',
+  tokenKey: 'scout.token',
+  badges: document.getElementById('acct'),
+  links: suiteLinks(),
+  onReady: () => { connectFeed(); refreshLog(); },
+  onSignedOut: () => { if (es) { try { es.close(); } catch (e) { /* gone */ } es = null; } setConn('down'); },
+});
+Auth.start();
 </script>
+
+<div id="demoRibbon" style="position:fixed;z-index:99999;left:12px;bottom:12px;padding:6px 11px;border-radius:8px;
+  background:#121822;border:1px solid #232d3e;color:#8695ad;font:13px/1.35 ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  pointer-events:none">Live demo with sample data. It runs in your browser.</div>
 </body>
 </html>

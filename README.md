@@ -11,7 +11,9 @@ on-premises IS-04/IS-05 discovery, diagnostics and control for ST 2110 broadcast
 
 | Path | Purpose |
 |---|---|
-| `index.html` | the marketing / download site (self-contained, no build step) |
+| `index.html` | the marketing / download site (no build step) |
+| `range/` | the Teunkey Broadcast range's stylesheet + backdrop, a **copy** written by `broadcast-projects/tools/sync-range.mjs`: never edit it here |
+| `assets/` | the two products' logos (copied from the apps by `demo/build-demo.js`) |
 | `demo/scout.html`, `demo/quartermaster.html` | the embedded **live demos** — generated, do not hand-edit |
 | `demo/build-demo.js`, `demo/_*.json` | demo generator + captured state — **git-ignored** (local only); see "Live demo" |
 | `.github/workflows/deploy.yml` | auto-deploy to Cloudflare Pages on every push |
@@ -33,7 +35,11 @@ pinned to v3 because the runner uses Node 20.)
 
 ## Updating
 
-- **Site copy / design:** edit `index.html`, commit, push → auto-deploys.
+- **Site copy / design:** edit `index.html`, commit, push → auto-deploys. The look is the
+  Teunkey Broadcast range (Signal Captain, Deck Planner, NMOS Quartermaster, NMOS Scout):
+  colours, type and buttons come from `range/range.css` (`--tkr-*`, `.tkr-btn`), so the
+  page follows the products. Run `node tools/sync-range.mjs --check` in `broadcast-projects/`
+  before a push.
 - **Downloads:** build new bundles (product repo's `build/` runbook), upload them
   to a **new GitHub Release**. The site links to `releases/latest/…`, so it always
   serves the newest build — no site change needed.
@@ -50,23 +56,21 @@ Those two pages are **generated** by `demo/build-demo.js` from the apps' own
 frontends plus a captured state snapshot. The generator + snapshots are git-ignored
 (kept local); only the generated `.html` is committed and deployed.
 
-**To refresh the demo after a product update** — run from `broadcast-projects/`:
+**To refresh the demo after a product update** — run from `broadcast-projects/website/demo/`:
 
 ```bash
-# 1. run the two apps locally (no registry → mock/demo data loads automatically)
-node nmos-scout/server.js &                     # :3500
-node nmos-quartermaster/backend/src/server.js & # :3011
+# 1. start both apps from source on throwaway data (no registry, so each loads its own
+#    sample data), sign in, capture their state, and build the two pages
+node build-demo.js --capture
 
-# 2. capture fresh state into the (git-ignored) snapshots
-curl -s localhost:3500/api/state > website/demo/_scout-state.json
-curl -s localhost:3011/api/state > website/demo/_qm-state.json
-
-# 3. regenerate the demo pages
-cd website/demo && node build-demo.js
-
-# 4. ship it (push auto-deploys)
-cd .. && git add demo/*.html && git commit -m "refresh live demo" && git push
+# 2. bump V in index.html's demo script (?v=, so browsers fetch the new pages), then ship
+cd .. && git add demo/*.html assets index.html && git commit -m "refresh live demo" && git push
 ```
+
+Since 2026-10-01 the apps sign in first, so a plain `curl /api/state` answers 401: the
+capture signs in through the apps' own first-run set-up. In the demo the visitor is signed
+in as "Demo" (an Operator), the range kit is written into each page, and the account
+menu's product list holds only the two demos.
 
 The generator curates the Quartermaster capture (drops leftover manual/phantom
 nodes + registry-error alerts, marks demo nodes healthy, seeds a couple of live
