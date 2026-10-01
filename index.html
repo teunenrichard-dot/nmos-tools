@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>NMOS Tools: NMOS discovery and control for ST 2110</title>
-<meta name="description" content="NMOS Scout and NMOS Quartermaster: IS-04 and IS-05 discovery, diagnostics and control for ST 2110 broadcast. They run on your own network, on Windows, with nothing to install. Free for 14 days."/>
+<meta name="description" content="NMOS Scout and NMOS Quartermaster: IS-04 and IS-05 discovery, diagnostics and control for ST 2110 broadcast. They run on your own network, on Windows or Linux, with nothing to install. Free for 14 days."/>
 <meta property="og:title" content="NMOS Tools: NMOS discovery and control on your own network"/>
 <meta property="og:description" content="NMOS Scout and NMOS Quartermaster find, check and route your ST 2110 plant over IS-04 and IS-05. They run on your network and are licensed offline. Free for 14 days."/>
 <meta property="og:type" content="website"/>
@@ -70,6 +70,7 @@
   .feat { margin: 0 0 22px; padding-left: 20px; display: grid; gap: 6px; }
   .feat li::marker { color: var(--tkr-accent); }
   .prod .grow { flex: 1; }
+  .dl { display: flex; gap: 8px; flex-wrap: wrap; }
   .file { margin-top: 12px; color: var(--tkr-muted); font-size: 13px; }
 
   /* the live demo: the real applications in a frame */
@@ -150,9 +151,9 @@
   <div class="hero" id="top">
     <div class="wrap hero-in">
       <h1>NMOS discovery and control on your own network</h1>
-      <p class="sub">NMOS Scout finds and checks everything in an NMOS registry, and NMOS Quartermaster routes it over IS-05. Both run on a Windows PC on your media network, with nothing to install and nothing sent to the internet.</p>
+      <p class="sub">NMOS Scout finds and checks everything in an NMOS registry, and NMOS Quartermaster routes it over IS-05. Both run on a Windows or Linux machine on your media network, with nothing to install and nothing sent to the internet.</p>
       <div class="cta">
-        <a class="tkr-btn tkr-primary btn-lg" href="#products">Download for Windows</a>
+        <a class="tkr-btn tkr-primary btn-lg" href="#products">Download for Windows or Linux</a>
         <a class="tkr-btn btn-lg" href="#demo">Try the live demo</a>
       </div>
       <p class="trial">Free for 14 days with every feature. After that, discovery and diagnostics stay free.</p>
@@ -168,24 +169,28 @@
         <article class="prod">
           <div class="prod-head">
             <img src="assets/scout-mark.png" alt="" width="56" height="56"/>
-            <div><h3 class="name"><b>NMOS</b> Scout</h3><p class="ver">Version 1.4, IS-04 and IS-05 diagnostics and routing</p></div>
+            <div><h3 class="name"><b>NMOS</b> Scout</h3><p class="ver">Version 1.5, IS-04 and IS-05 diagnostics and routing</p></div>
           </div>
-          <p>Point it at any NMOS registry and see your nodes, devices, senders and receivers. Scout checks each one against the specifications and shows what changed since the last scan, and you can route straight from its crosspoint matrix.</p>
+          <p>Point it at any NMOS registry and see your nodes, devices, senders and receivers. Scout flags the gaps a controller would trip over and shows what changed since the last scan, and you can route straight from its crosspoint matrix.</p>
           <ul class="feat">
-            <li>Finds registries on the network by itself (mDNS) and checks every resource</li>
+            <li>Can look for registries on the network by itself (mDNS), and checks every resource for what a controller needs</li>
             <li>A route matrix that checks the formats match before it routes</li>
             <li>A subscription tester and a request builder</li>
             <li>What changed since the last scan, and an export of everything as JSON</li>
           </ul>
           <div class="grow"></div>
-          <div><a class="tkr-btn tkr-primary" data-dl="scout" href="#products" download>Download Scout</a></div>
-          <p class="file"><code>nmos-scout-portable.zip</code>, about 27 MB, Windows 64-bit</p>
+          <div class="dl">
+            <a class="tkr-btn tkr-primary" data-dl="scout" href="#products" download>Scout for Windows</a>
+            <a class="tkr-btn" data-dl="scout-linux-x64" href="#products" download>Linux x86-64</a>
+            <a class="tkr-btn" data-dl="scout-linux-arm64" href="#products" download>Linux ARM64</a>
+          </div>
+          <p class="file">Windows 10 and 11: a 28 MB zip. Linux: a 36 MB tar.gz, for PCs and servers (x86-64) or for ARM (ARM64).</p>
         </article>
 
         <article class="prod">
           <div class="prod-head">
             <img src="assets/quartermaster-mark.png" alt="" width="56" height="56"/>
-            <div><h3 class="name"><b>NMOS</b> Quartermaster</h3><p class="ver">Version 1.3.1, orchestration and control</p></div>
+            <div><h3 class="name"><b>NMOS</b> Quartermaster</h3><p class="ver">Version 1.4, orchestration and control</p></div>
           </div>
           <p>One screen to control your whole ST 2110 plant, whatever make the equipment is: routing as it happens, automation rules, health monitoring and the multicast addresses.</p>
           <ul class="feat">
@@ -195,8 +200,12 @@
             <li>A multicast address pool that catches clashes</li>
           </ul>
           <div class="grow"></div>
-          <div><a class="tkr-btn tkr-primary" data-dl="quartermaster" href="#products" download>Download Quartermaster</a></div>
-          <p class="file"><code>nmos-quartermaster-portable.zip</code>, about 28 MB, Windows 64-bit</p>
+          <div class="dl">
+            <a class="tkr-btn tkr-primary" data-dl="quartermaster" href="#products" download>Quartermaster for Windows</a>
+            <a class="tkr-btn" data-dl="quartermaster-linux-x64" href="#products" download>Linux x86-64</a>
+            <a class="tkr-btn" data-dl="quartermaster-linux-arm64" href="#products" download>Linux ARM64</a>
+          </div>
+          <p class="file">Windows 10 and 11: a 30 MB zip. Linux: a 37 MB tar.gz, for PCs and servers (x86-64) or for ARM (ARM64).</p>
         </article>
 
       </div>
@@ -229,8 +238,8 @@
       <h2>How it works</h2>
       <p class="lead">You can be looking at your own registry two minutes after the download.</p>
       <ol class="steps">
-        <li><h3>Download and unzip</h3><p>There is no installer. The app and everything it needs to run are in the folder.</p></li>
-        <li><h3>Double-click to start</h3><p>It opens in your browser and talks to the NMOS equipment on your network, from your own premises.</p></li>
+        <li><h3>Download and unpack</h3><p>There is no installer. The app and everything it needs to run are in the folder.</p></li>
+        <li><h3>Start it</h3><p>Double-click the launcher on Windows, or run the start script on Linux. It opens in your browser and talks to the NMOS equipment on your network.</p></li>
         <li><h3>Free for 14 days</h3><p>Every feature works during the trial. After it, discovery stays free and control needs a licence.</p></li>
         <li><h3>Activate offline</h3><p>Paste your licence key into the app. It needs no internet, so it works on an air-gapped network.</p></li>
       </ol>
@@ -244,7 +253,7 @@
       <div class="cols3">
         <div><h3>On your premises</h3><p>It runs on a laptop on the media network. Your inventory never leaves the building.</p></div>
         <div><h3>Offline licensing</h3><p>Licence keys are signed and checked on the machine itself. Nothing phones home, so isolated and air-gapped networks are fine.</p></div>
-        <div><h3>Nothing to install</h3><p>It needs no administrator rights and no Node.js. Unzip the folder and start it.</p></div>
+        <div><h3>Nothing to install</h3><p>It needs no administrator rights and no Node.js, on Windows or Linux. Unpack the folder and start it.</p></div>
         <div><h3>Any make of equipment</h3><p>It speaks standard IS-04 and IS-05, so it works with every registry and device that follows them.</p></div>
         <div><h3>Free to evaluate</h3><p>Discovery and diagnostics stay free after the trial. You pay only for the control features.</p></div>
         <div><h3>Made for the gallery</h3><p>A dark, dense screen that you can drive from the keyboard, made for a control room.</p></div>
@@ -305,8 +314,9 @@
       <h2>Questions</h2>
       <div class="faq">
         <details><summary>Do I need an internet connection?</summary><p>No. Both tools run entirely on your local network and check licences offline. Nothing is sent to the internet, including your device inventory. They are made for isolated, air-gapped broadcast networks.</p></details>
-        <details><summary>What do I need to install?</summary><p>Nothing. Each download is a folder that already includes the runtime. Unzip it anywhere and double-click the launcher. It needs no administrator rights and no Node.js.</p></details>
-        <details><summary>Which platforms are supported?</summary><p>Windows 10 and 11 (64-bit) today. Builds for macOS and Linux are planned; get in touch if you need one.</p></details>
+        <details><summary>What do I need to install?</summary><p>Nothing. Each download is a folder that already includes the runtime. Unpack it anywhere, then double-click the launcher on Windows or run the start script on Linux. It needs no administrator rights and no Node.js.</p></details>
+        <details><summary>Which platforms are supported?</summary><p>Windows 10 and 11 (64-bit), and Linux on x86-64 and ARM64: a server in the machine room, a laptop, or a Raspberry Pi. On a Linux server it can run as a service; the read-me in the download shows how. A build for macOS is planned; get in touch if you need one.</p></details>
+        <details><summary>Who can use it?</summary><p>Everyone gets their own account. The first start asks you to create the administrator, on the computer the tool runs on; the administrator then adds the others, each with a role, and resets a forgotten password.</p></details>
         <details><summary>How does the trial work?</summary><p>The first launch starts a 14-day trial with every feature. After it ends, discovery and diagnostics keep working for free, and the control actions (routing, automation, reservations) work again once you activate a licence key.</p></details>
         <details><summary>How is it licensed?</summary><p>You buy a licence key, paste it into the app, and the app checks its cryptographic signature offline. Keys are per machine (Pro) or per facility (Site), perpetual or annual.</p></details>
         <details><summary>Can I run it in a critical, on-air environment?</summary><p>The tools are professional utilities: always check routing and control actions in your own environment first. The licence agreement included with each download has the full terms.</p></details>
@@ -318,7 +328,7 @@
     <div class="wrap">
       <h2>Try it on your own network</h2>
       <p class="lead">Free for 14 days. There is nothing to install and no card to give.</p>
-      <a class="tkr-btn tkr-primary btn-lg" href="#products">Download for Windows</a>
+      <a class="tkr-btn tkr-primary btn-lg" href="#products">Download for Windows or Linux</a>
     </div>
   </section>
 
@@ -339,7 +349,11 @@
   // The downloads are the latest GitHub release of this repository.
   var DOWNLOADS = {
     scout:         'https://github.com/teunenrichard-dot/nmos-tools/releases/latest/download/nmos-scout-portable.zip',
-    quartermaster: 'https://github.com/teunenrichard-dot/nmos-tools/releases/latest/download/nmos-quartermaster-portable.zip'
+    quartermaster: 'https://github.com/teunenrichard-dot/nmos-tools/releases/latest/download/nmos-quartermaster-portable.zip',
+    'scout-linux-x64':           'https://github.com/teunenrichard-dot/nmos-tools/releases/latest/download/nmos-scout-linux-x64.tar.gz',
+    'scout-linux-arm64':         'https://github.com/teunenrichard-dot/nmos-tools/releases/latest/download/nmos-scout-linux-arm64.tar.gz',
+    'quartermaster-linux-x64':   'https://github.com/teunenrichard-dot/nmos-tools/releases/latest/download/nmos-quartermaster-linux-x64.tar.gz',
+    'quartermaster-linux-arm64': 'https://github.com/teunenrichard-dot/nmos-tools/releases/latest/download/nmos-quartermaster-linux-arm64.tar.gz'
   };
   document.querySelectorAll('[data-dl]').forEach(function (a) { a.href = DOWNLOADS[a.dataset.dl] || '#products'; });
 
