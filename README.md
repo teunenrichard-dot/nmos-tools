@@ -40,9 +40,10 @@ pinned to v3 because the runner uses Node 20.)
   colours, type and buttons come from `range/range.css` (`--tkr-*`, `.tkr-btn`), so the
   page follows the products. Run `node tools/sync-range.mjs --check` in `broadcast-projects/`
   before a push.
-- **Downloads:** build new bundles (product repo's `build/` runbook), upload them
-  to a **new GitHub Release**. The site links to `releases/latest/…`, so it always
-  serves the newest build — no site change needed.
+- **Downloads:** build new bundles (product repo's `build/` runbook: Windows `.zip`,
+  Linux x86-64 and ARM64 `.tar.gz`), upload them to a **new GitHub Release**. The
+  site links to `releases/latest/download/<file name>`, so it always serves the
+  newest build — no site change needed while the file names stay the same.
 - **Live demo:** see below.
 
 ## Live demo
